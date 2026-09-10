@@ -1,0 +1,34 @@
+// Styles partages par les boites de dialogue du profil candidat.
+
+.dialog-form {
+  min-width: min(660px, 84vw);
+  padding-top: 0.5rem;
+}
+
+.dialog-error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0;
+  color: var(--jb-danger);
+  font-size: 0.82rem;
+}
+
+.tasks-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.task-row mat-form-field {
+  flex: 1;
+}
+
+.dialog-form--compact {
+  min-width: min(420px, 84vw);
+}

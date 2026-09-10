@@ -1,0 +1,81 @@
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filters {
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.loading-block {
+  display: grid;
+  place-items: center;
+  min-height: 30vh;
+}
+
+.job-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.job {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+}
+
+.job__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.job__title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: none;
+}
+
+.job__title:hover {
+  color: var(--jb-primary);
+  text-decoration: underline;
+}
+
+.job__meta {
+  margin: 0.35rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--jb-muted);
+}
+
+.job__meta .dot {
+  margin: 0 0.25rem;
+}
+
+.job__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  flex: none;
+}
+
+@media (max-width: 767px) {
+  .job {
+    flex-direction: column;
+  }
+
+  .job__actions {
+    align-self: flex-end;
+  }
+}

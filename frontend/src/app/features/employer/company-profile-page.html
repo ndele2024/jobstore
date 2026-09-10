@@ -1,0 +1,107 @@
+<div class="page page--narrow">
+  <h1 class="page-title">Profil de l'entreprise</h1>
+  <p class="page-subtitle">
+    Ces informations apparaissent sur vos offres. Le nom de l'entreprise est mis à jour
+    automatiquement sur toutes vos annonces.
+  </p>
+
+  @if (loading()) {
+    <div class="loading-block"><mat-spinner diameter="42" /></div>
+  } @else if (profile(); as profile) {
+    <form class="surface surface--padded" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="form-grid">
+        <mat-form-field class="form-grid--full">
+          <mat-label>Nom de l'entreprise</mat-label>
+          <input matInput formControlName="companyName" required />
+          @if (form.controls.companyName.touched && form.controls.companyName.invalid) {
+            <mat-error>{{ errorFor('companyName', "Le nom de l'entreprise") }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Adresse courriel</mat-label>
+          <input matInput [value]="profile.email" disabled />
+          <mat-hint>Modifiable dans « Paramètres du compte ».</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Téléphone</mat-label>
+          <input matInput formControlName="phone" required />
+          @if (form.controls.phone.touched && form.controls.phone.invalid) {
+            <mat-error>{{ errorFor('phone', 'Le téléphone') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="form-grid--full">
+          <mat-label>Adresse</mat-label>
+          <input matInput formControlName="addressLine" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Ville</mat-label>
+          <input matInput formControlName="city" [matAutocomplete]="cityAuto" required />
+          <mat-autocomplete #cityAuto="matAutocomplete">
+            @for (city of reference().cities; track city) {
+              <mat-option [value]="city">{{ city }}</mat-option>
+            }
+          </mat-autocomplete>
+          @if (form.controls.city.touched && form.controls.city.invalid) {
+            <mat-error>{{ errorFor('city', 'La ville') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Pays</mat-label>
+          <input matInput formControlName="country" [matAutocomplete]="countryAuto" required />
+          <mat-autocomplete #countryAuto="matAutocomplete">
+            @for (country of reference().countries; track country) {
+              <mat-option [value]="country">{{ country }}</mat-option>
+            }
+          </mat-autocomplete>
+          @if (form.controls.country.touched && form.controls.country.invalid) {
+            <mat-error>{{ errorFor('country', 'Le pays') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Code postal</mat-label>
+          <input matInput formControlName="postalCode" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Site web</mat-label>
+          <input matInput formControlName="websiteUrl" placeholder="https://exemple.ca" />
+        </mat-form-field>
+
+        <div class="form-grid--full">
+          <app-chip-list-input
+            [(values)]="sectors"
+            label="Secteurs d'activité"
+            placeholder="Ajouter un secteur puis Entrée"
+            [suggestions]="reference().sectors"
+          />
+          @if (sectorsTouched() && sectors().length === 0) {
+            <p class="field-error">Sélectionnez au moins un secteur d'activité.</p>
+          }
+        </div>
+
+        <mat-form-field class="form-grid--full">
+          <mat-label>Accroche</mat-label>
+          <input matInput formControlName="headline" maxlength="120" />
+          <mat-hint>Exemple : Studio produit et ingénierie</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field class="form-grid--full">
+          <mat-label>Présentation de l'entreprise</mat-label>
+          <textarea matInput formControlName="summary" rows="5" maxlength="1200"></textarea>
+        </mat-form-field>
+
+        <div class="form-grid--full actions-row actions-row--end">
+          <button matButton="filled" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</div>

@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>{{ isEdit() ? 'Modifier la langue' : 'Ajouter une langue' }}</h2>
+
+<mat-dialog-content class="dialog-form dialog-form--compact">
+  <form class="form-grid" [formGroup]="form" novalidate>
+    <mat-form-field>
+      <mat-label>Langue</mat-label>
+      <input matInput formControlName="name" [matAutocomplete]="languageAuto" required />
+      <mat-autocomplete #languageAuto="matAutocomplete">
+        @for (language of reference().languages; track language) {
+          <mat-option [value]="language">{{ language }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <mat-error>{{ errorFor('name', 'La langue') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Niveau d'aptitude</mat-label>
+      <mat-select formControlName="level" required>
+        @for (option of reference().languageLevels; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" (click)="cancel()">Annuler</button>
+  <button matButton="filled" type="button" (click)="submit()">Enregistrer</button>
+</mat-dialog-actions>

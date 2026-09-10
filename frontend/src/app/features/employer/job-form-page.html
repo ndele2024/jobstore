@@ -1,0 +1,200 @@
+<div class="page page--narrow">
+  <a class="back-link" routerLink="/entreprise/offres">
+    <mat-icon inline>arrow_back</mat-icon> Retour à mes offres
+  </a>
+
+  <h1 class="page-title">{{ isEdit() ? "Modifier l'offre" : 'Publier une offre' }}</h1>
+  <p class="page-subtitle">
+    Les compétences demandées servent à calculer la correspondance avec le profil des candidats :
+    soyez précis, cela améliore la qualité des candidatures reçues.
+  </p>
+
+  @if (loading()) {
+    <div class="loading-block"><mat-spinner diameter="42" /></div>
+  } @else {
+    <form class="surface surface--padded" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <h2 class="section-title"><mat-icon>badge</mat-icon> Poste</h2>
+
+      <div class="form-grid">
+        <mat-form-field class="form-grid--full">
+          <mat-label>Titre du poste</mat-label>
+          <input matInput formControlName="title" maxlength="140" required />
+          @if (form.controls.title.touched && form.controls.title.invalid) {
+            <mat-error>{{ errorFor('title', 'Le titre') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Domaine</mat-label>
+          <input matInput formControlName="domain" [matAutocomplete]="domainAuto" required />
+          <mat-autocomplete #domainAuto="matAutocomplete">
+            @for (domain of reference().domains; track domain) {
+              <mat-option [value]="domain">{{ domain }}</mat-option>
+            }
+          </mat-autocomplete>
+          @if (form.controls.domain.touched && form.controls.domain.invalid) {
+            <mat-error>{{ errorFor('domain', 'Le domaine') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Secteur d'activité</mat-label>
+          <input matInput formControlName="sector" [matAutocomplete]="sectorAuto" required />
+          <mat-autocomplete #sectorAuto="matAutocomplete">
+            @for (sector of reference().sectors; track sector) {
+              <mat-option [value]="sector">{{ sector }}</mat-option>
+            }
+          </mat-autocomplete>
+          @if (form.controls.sector.touched && form.controls.sector.invalid) {
+            <mat-error>{{ errorFor('sector', 'Le secteur') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Ville</mat-label>
+          <input matInput formControlName="city" [matAutocomplete]="cityAuto" required />
+          <mat-autocomplete #cityAuto="matAutocomplete">
+            @for (city of reference().cities; track city) {
+              <mat-option [value]="city">{{ city }}</mat-option>
+            }
+          </mat-autocomplete>
+          @if (form.controls.city.touched && form.controls.city.invalid) {
+            <mat-error>{{ errorFor('city', 'La ville') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Pays</mat-label>
+          <input matInput formControlName="country" [matAutocomplete]="countryAuto" required />
+          <mat-autocomplete #countryAuto="matAutocomplete">
+            @for (country of reference().countries; track country) {
+              <mat-option [value]="country">{{ country }}</mat-option>
+            }
+          </mat-autocomplete>
+          @if (form.controls.country.touched && form.controls.country.invalid) {
+            <mat-error>{{ errorFor('country', 'Le pays') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Type de contrat</mat-label>
+          <mat-select formControlName="contractType" required>
+            @for (option of reference().contractTypes; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Mode de travail</mat-label>
+          <mat-select formControlName="workMode" required>
+            @for (option of reference().workModes; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <h2 class="section-title mt-3"><mat-icon>payments</mat-icon> Rémunération et dates</h2>
+
+      <div class="form-grid">
+        <mat-form-field>
+          <mat-label>Salaire minimum</mat-label>
+          <input matInput type="number" formControlName="salaryMin" min="0" step="1000" required />
+          <span matSuffix>&nbsp;$</span>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Salaire maximum</mat-label>
+          <input matInput type="number" formControlName="salaryMax" min="0" step="1000" required />
+          <span matSuffix>&nbsp;$</span>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Entrée en poste</mat-label>
+          <input matInput [matDatepicker]="startPicker" formControlName="startDate" required />
+          <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+          <mat-datepicker #startPicker />
+          @if (form.controls.startDate.touched && form.controls.startDate.invalid) {
+            <mat-error>{{ errorFor('startDate', "La date d'entrée en poste") }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Fin d'affichage</mat-label>
+          <input
+            matInput
+            [matDatepicker]="untilPicker"
+            [min]="today"
+            formControlName="displayUntil"
+            required
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="untilPicker" />
+          <mat-datepicker #untilPicker />
+          @if (form.controls.displayUntil.touched && form.controls.displayUntil.invalid) {
+            <mat-error>{{ errorFor('displayUntil', "La date de fin d'affichage") }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (form.hasError('salaryRange')) {
+          <p class="form-error form-grid--full">
+            <mat-icon inline>error</mat-icon>
+            Le salaire maximum doit être supérieur ou égal au salaire minimum.
+          </p>
+        }
+      </div>
+
+      <h2 class="section-title mt-3"><mat-icon>description</mat-icon> Contenu de l'offre</h2>
+
+      <mat-form-field class="full-width">
+        <mat-label>Description du poste</mat-label>
+        <textarea matInput formControlName="description" rows="7" required></textarea>
+        @if (form.controls.description.touched && form.controls.description.invalid) {
+          <mat-error>{{ errorFor('description', 'La description') }}</mat-error>
+        } @else {
+          <mat-hint>30 caractères minimum. Décrivez le contexte, l'équipe et les attentes.</mat-hint>
+        }
+      </mat-form-field>
+
+      <div class="mt-2">
+        <app-chip-list-input
+          [(values)]="skills"
+          label="Compétences requises"
+          placeholder="Ajouter une compétence puis Entrée"
+          hint="Ces compétences déterminent le pourcentage de correspondance des candidats."
+          [suggestions]="reference().skills"
+        />
+      </div>
+
+      <div>
+        <app-chip-list-input
+          [(values)]="responsibilities"
+          label="Responsabilités"
+          placeholder="Ajouter une responsabilité puis Entrée"
+          hint="Une responsabilité par entrée."
+        />
+      </div>
+
+      <h2 class="section-title mt-3"><mat-icon>visibility</mat-icon> Publication</h2>
+
+      <mat-form-field>
+        <mat-label>Statut</mat-label>
+        <mat-select formControlName="status" required>
+          <mat-option [value]="jobStatus.Published">Publiée (visible des candidats)</mat-option>
+          <mat-option [value]="jobStatus.Draft">Brouillon (non visible)</mat-option>
+          <mat-option [value]="jobStatus.Closed">Fermée</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="actions-row actions-row--end mt-3">
+        <a matButton routerLink="/entreprise/offres">Annuler</a>
+        <button matButton="outlined" type="button" [disabled]="saving()" (click)="save(false)">
+          Enregistrer en brouillon
+        </button>
+        <button matButton="filled" type="button" [disabled]="saving()" (click)="save(true)">
+          {{ saving() ? 'Enregistrement...' : isEdit() ? 'Enregistrer et publier' : 'Publier l’offre' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

@@ -1,0 +1,95 @@
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__eyebrow">Plateforme d'emploi</p>
+    <h1 class="hero__title">
+      Le bon poste, <span>expliqué</span> — pas seulement suggéré.
+    </h1>
+    <p class="hero__lead">
+      JobStore calcule votre correspondance avec chaque offre et vous montre exactement ce qui
+      colle et ce qui manque. Côté entreprise, vous voyez qui consulte vos offres, pas seulement
+      qui postule.
+    </p>
+
+    <form class="hero__search surface" (ngSubmit)="search()">
+      <mat-form-field appearance="outline" class="hero__field">
+        <mat-label>Poste, competence ou entreprise</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [(ngModel)]="keyword" name="keyword" placeholder="Developpeur Angular" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="hero__field">
+        <mat-label>Ville</mat-label>
+        <mat-icon matPrefix>place</mat-icon>
+        <input matInput [(ngModel)]="city" name="city" placeholder="Montreal" />
+      </mat-form-field>
+
+      <button matButton="filled" type="submit" class="hero__submit">Rechercher</button>
+    </form>
+
+    <div class="hero__actions">
+      @if (isAuthenticated()) {
+        <a matButton="tonal" [routerLink]="homeRoute()">
+          <mat-icon>dashboard</mat-icon>
+          Aller a mon tableau de bord
+        </a>
+      } @else {
+        <a matButton="tonal" routerLink="/inscription/candidat">Je cherche un emploi</a>
+        <a matButton="outlined" routerLink="/inscription/entreprise">Je recrute</a>
+      }
+      <span class="hero__count">{{ totalJobs() }} offres disponibles</span>
+    </div>
+  </div>
+</section>
+
+<section class="page">
+  <div class="grid grid--3">
+    <div class="feature surface surface--padded">
+      <mat-icon class="feature__icon">insights</mat-icon>
+      <h3>Matching transparent</h3>
+      <p class="muted">
+        Chaque offre affiche votre pourcentage de correspondance, les compétences reconnues et
+        celles qu'il reste à acquérir.
+      </p>
+    </div>
+
+    <div class="feature surface surface--padded">
+      <mat-icon class="feature__icon">upload_file</mat-icon>
+      <h3>Profil pré-rempli par votre CV</h3>
+      <p class="muted">
+        Téléversez un CV en PDF, DOC, DOCX ou TXT : JobStore en extrait vos coordonnées et vos
+        compétences, vous n'avez plus qu'à valider.
+      </p>
+    </div>
+
+    <div class="feature surface surface--padded">
+      <mat-icon class="feature__icon">query_stats</mat-icon>
+      <h3>Cockpit employeur</h3>
+      <p class="muted">
+        Consultations, candidatures, meilleurs profils : l'entreprise pilote ses offres et traite
+        les candidatures en deux clics.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="page">
+  <div class="section-head">
+    <h2 class="section-title"><mat-icon>bolt</mat-icon> Dernières offres publiées</h2>
+    <a matButton routerLink="/emplois">
+      Voir toutes les offres
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </a>
+  </div>
+
+  @if (latestJobs().length) {
+    <div class="grid grid--2">
+      @for (job of latestJobs(); track job.id) {
+        <app-job-card [job]="job" />
+      }
+    </div>
+  } @else {
+    <p class="muted">
+      Aucune offre à afficher pour le moment. Vérifiez que l'API JobStore est démarrée.
+    </p>
+  }
+</section>

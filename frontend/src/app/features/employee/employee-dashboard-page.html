@@ -1,0 +1,207 @@
+@if (loading()) {
+  <div class="page loading-block"><mat-spinner diameter="42" /></div>
+} @else if (dashboard(); as data) {
+  <div class="page">
+    <h1 class="page-title">Bonjour {{ data.profile.displayName }}</h1>
+    <p class="page-subtitle">
+      Voici l'état de votre recherche d'emploi et les offres qui correspondent le mieux à votre
+      profil.
+    </p>
+
+    <!-- Recherche rapide -->
+    <form class="quick-search surface" (ngSubmit)="runQuickSearch()">
+      <mat-form-field class="quick-search__field" subscriptSizing="fixed">
+        <mat-label>Recherche rapide d'offres</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [(ngModel)]="quickSearch" name="quickSearch" placeholder="Poste, compétence, entreprise" />
+      </mat-form-field>
+      <button matButton="filled" type="submit">Rechercher</button>
+    </form>
+
+    <div class="dashboard-layout">
+      <!-- Colonne principale -->
+      <div class="dashboard-main">
+        <!-- Indicateurs -->
+        <div class="grid grid--4">
+          <div class="stat surface surface--padded">
+            <span class="stat__label">Candidatures</span>
+            <span class="stat__value">{{ data.submittedApplications }}</span>
+          </div>
+          <div class="stat surface surface--padded">
+            <span class="stat__label">Offres consultées</span>
+            <span class="stat__value">{{ data.viewedOffers }}</span>
+          </div>
+          <div class="stat surface surface--padded">
+            <span class="stat__label">CV enregistrés</span>
+            <span class="stat__value">{{ data.resumeCount }}</span>
+          </div>
+          <div class="stat surface surface--padded">
+            <span class="stat__label">Profil complété</span>
+            <span class="stat__value">{{ data.profile.completionPercentage }} %</span>
+          </div>
+        </div>
+
+        <!-- Recommandations -->
+        <section class="mt-3">
+          <div class="section-head">
+            <h2 class="section-title"><mat-icon>auto_awesome</mat-icon> Offres recommandées</h2>
+
+            @if (recommendationPages() > 1) {
+              <div class="pager">
+                <button
+                  matIconButton
+                  aria-label="Offres précédentes"
+                  [disabled]="recommendationPage() === 0"
+                  (click)="previousRecommendations()"
+                >
+                  <mat-icon>chevron_left</mat-icon>
+                </button>
+                <span class="pager__label">
+                  {{ recommendationPage() + 1 }} / {{ recommendationPages() }}
+                </span>
+                <button
+                  matIconButton
+                  aria-label="Offres suivantes"
+                  [disabled]="recommendationPage() >= recommendationPages() - 1"
+                  (click)="nextRecommendations()"
+                >
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+
+          @if (visibleRecommendations().length) {
+            <div class="grid grid--3">
+              @for (job of visibleRecommendations(); track job.jobId) {
+                <a class="reco surface" [routerLink]="['/emplois', job.jobId]">
+                  <div class="reco__head">
+                    <app-match-gauge
+                      [percentage]="job.matchPercentage"
+                      [matchedSkills]="job.matchedSkills"
+                      [missingSkills]="job.missingSkills"
+                    />
+                    <div>
+                      <h3 class="reco__title">{{ job.title }}</h3>
+                      <p class="reco__employer">{{ job.employerName }}</p>
+                    </div>
+                  </div>
+
+                  <p class="reco__meta">
+                    <mat-icon inline>place</mat-icon> {{ job.city }}, {{ job.country }}
+                  </p>
+                  <p class="reco__salary">{{ job.salaryMin | salaryRange: job.salaryMax }}</p>
+
+                  @if (job.missingSkills.length) {
+                    <p class="reco__missing">
+                      À développer : {{ job.missingSkills.join(', ') }}
+                    </p>
+                  } @else {
+                    <p class="reco__match">Toutes les compétences demandées sont couvertes.</p>
+                  }
+                </a>
+              }
+            </div>
+          } @else {
+            <app-empty-state
+              icon="travel_explore"
+              title="Aucune recommandation pour l'instant"
+              message="Complétez vos compétences dans votre profil pour recevoir des suggestions ciblées."
+            >
+              <a matButton="filled" class="mt-2" routerLink="/candidat/profil">Compléter mon profil</a>
+            </app-empty-state>
+          }
+        </section>
+
+        <!-- Candidatures recentes -->
+        <section class="mt-3">
+          <div class="section-head">
+            <h2 class="section-title"><mat-icon>work_history</mat-icon> Candidatures récentes</h2>
+            <a matButton routerLink="/candidat/candidatures">
+              Tout voir <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+            </a>
+          </div>
+
+          @if (data.recentApplications.length) {
+            <div class="surface applications">
+              @for (application of data.recentApplications; track application.id) {
+                <a class="application" [routerLink]="['/emplois', application.jobId]">
+                  <div class="application__main">
+                    <strong>{{ application.jobTitle }}</strong>
+                    <span class="muted text-small">
+                      {{ application.employerName }} · déposée {{ application.submittedAtUtc | timeAgo }}
+                    </span>
+                  </div>
+                  <app-status-chip [applicationStatus]="application.status" />
+                </a>
+              }
+            </div>
+          } @else {
+            <app-empty-state
+              icon="inbox"
+              title="Aucune candidature déposée"
+              message="Parcourez les offres et postulez : vous suivrez ici l'avancement de chaque dossier."
+            >
+              <a matButton="filled" class="mt-2" routerLink="/emplois">Voir les offres</a>
+            </app-empty-state>
+          }
+        </section>
+      </div>
+
+      <!-- Colonne laterale : profil -->
+      <aside class="dashboard-aside">
+        <div class="surface surface--padded">
+          <h2 class="section-title"><mat-icon>badge</mat-icon> Mon profil</h2>
+
+          <p class="profile__headline">{{ data.profile.headline || 'Titre professionnel à définir' }}</p>
+          <p class="muted text-small">{{ data.profile.location }}</p>
+
+          <div class="profile__completion">
+            <div class="profile__completion-head">
+              <span>Complétion</span>
+              <strong>{{ data.profile.completionPercentage }} %</strong>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="data.profile.completionPercentage" />
+          </div>
+
+          @if (data.profile.missingProfileSections.length) {
+            <p class="muted text-small mt-2">À compléter :</p>
+            <mat-chip-set>
+              @for (section of data.profile.missingProfileSections; track section) {
+                <mat-chip disabled class="tone-warn">{{ section }}</mat-chip>
+              }
+            </mat-chip-set>
+          }
+
+          @if (data.profile.skills.length) {
+            <p class="muted text-small mt-2">Compétences :</p>
+            <mat-chip-set>
+              @for (skill of data.profile.skills; track skill) {
+                <mat-chip disabled>{{ skill }}</mat-chip>
+              }
+            </mat-chip-set>
+          }
+
+          <a matButton="filled" class="full-width mt-3" routerLink="/candidat/profil">
+            <mat-icon>edit</mat-icon>
+            Modifier mon profil
+          </a>
+        </div>
+
+        @if (activeStatusCounts().length) {
+          <div class="surface surface--padded mt-2">
+            <h2 class="section-title"><mat-icon>donut_small</mat-icon> Répartition</h2>
+            <ul class="status-list">
+              @for (entry of activeStatusCounts(); track entry.status) {
+                <li>
+                  <app-status-chip [applicationStatus]="entry.status" />
+                  <strong>{{ entry.count }}</strong>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+}

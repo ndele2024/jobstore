@@ -1,0 +1,350 @@
+@if (loading()) {
+  <div class="page loading-block"><mat-spinner diameter="42" /></div>
+} @else if (details(); as details) {
+  <div class="page">
+    <a class="back-link" routerLink="/entreprise/offres">
+      <mat-icon inline>arrow_back</mat-icon> Retour à mes offres
+    </a>
+
+    <!-- En-tete de l'offre -->
+    <header class="surface surface--padded">
+      <div class="job-head">
+        <div>
+          <div class="job-head__title-row">
+            <h1 class="page-title">{{ details.job.title }}</h1>
+            <app-status-chip [jobStatus]="details.job.status" />
+          </div>
+          <p class="job-head__meta">
+            <mat-icon inline>place</mat-icon> {{ details.job.city }}, {{ details.job.country }}
+            <span class="dot">·</span>
+            {{ details.job.salaryMin | salaryRange: details.job.salaryMax }}
+            <span class="dot">·</span>
+            {{ details.job.contractType | contractType }} ·
+            {{ details.job.workMode | workMode }}
+          </p>
+          <p class="job-head__meta">
+            Affichée jusqu'au {{ details.job.displayUntil }} · publiée
+            {{ details.job.createdAtUtc | timeAgo }}
+          </p>
+        </div>
+
+        <div class="job-head__actions">
+          <a matButton="outlined" [routerLink]="['/entreprise/offres', details.job.id, 'modifier']">
+            <mat-icon>edit</mat-icon>
+            Modifier
+          </a>
+          <button matButton="filled" [matMenuTriggerFor]="statusMenu">
+            <mat-icon>tune</mat-icon>
+            Changer le statut
+          </button>
+
+          <mat-menu #statusMenu="matMenu">
+            @if (details.job.status !== jobStatus.Published) {
+              <button mat-menu-item (click)="changeJobStatus(jobStatus.Published)">
+                <mat-icon>publish</mat-icon>
+                <span>Publier</span>
+              </button>
+            }
+            @if (details.job.status !== jobStatus.Draft) {
+              <button mat-menu-item (click)="changeJobStatus(jobStatus.Draft)">
+                <mat-icon>drafts</mat-icon>
+                <span>Repasser en brouillon</span>
+              </button>
+            }
+            @if (details.job.status !== jobStatus.Closed) {
+              <button mat-menu-item (click)="changeJobStatus(jobStatus.Closed)">
+                <mat-icon>lock</mat-icon>
+                <span>Fermer l'offre</span>
+              </button>
+            }
+          </mat-menu>
+        </div>
+      </div>
+
+      <div class="grid grid--4 mt-2">
+        <div class="mini-stat">
+          <span class="mini-stat__label">Consultations</span>
+          <span class="mini-stat__value">{{ details.job.viewCount }}</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat__label">Visiteurs uniques</span>
+          <span class="mini-stat__value">{{ details.viewers.length }}</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat__label">Candidatures</span>
+          <span class="mini-stat__value">{{ details.applicants.length }}</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat__label">À traiter</span>
+          <span class="mini-stat__value">{{ pendingCount() }}</span>
+        </div>
+      </div>
+    </header>
+
+    <mat-tab-group class="mt-2" animationDuration="150ms">
+      <!-- -------------------------------------------------------------- -->
+      <!-- Onglet candidats                                                -->
+      <!-- -------------------------------------------------------------- -->
+      <mat-tab [label]="'Candidats (' + details.applicants.length + ')'">
+        <div class="tab-body">
+          @if (details.applicants.length) {
+            <mat-accordion multi="false">
+              @for (applicant of details.applicants; track applicant.applicationId) {
+                <mat-expansion-panel class="applicant">
+                  <mat-expansion-panel-header collapsedHeight="auto" expandedHeight="auto">
+                    <mat-panel-title>
+                      <div class="applicant__header">
+                        <app-match-gauge
+                          [percentage]="applicant.matchPercentage"
+                          [matchedSkills]="applicant.matchedSkills"
+                          [missingSkills]="applicant.missingSkills"
+                        />
+                        <div class="applicant__identity">
+                          <strong>{{ applicant.candidateName }}</strong>
+                          <span class="muted text-small">
+                            {{ applicant.headline || 'Titre non renseigné' }}
+                          </span>
+                          <span class="muted text-small">
+                            {{ applicant.city }}, {{ applicant.country }} · postulé
+                            {{ applicant.submittedAtUtc | timeAgo }}
+                          </span>
+                        </div>
+                      </div>
+                    </mat-panel-title>
+                    <mat-panel-description>
+                      <app-status-chip [applicationStatus]="applicant.status" />
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+
+                  <!-- Detail du candidat -->
+                  <div class="applicant__body">
+                    <section class="applicant__section">
+                      <h3>Coordonnées</h3>
+                      <p class="muted text-small">
+                        <mat-icon inline>mail</mat-icon> {{ applicant.email }}
+                        <span class="dot">·</span>
+                        <mat-icon inline>call</mat-icon> {{ applicant.phone }}
+                      </p>
+                    </section>
+
+                    <section class="applicant__section">
+                      <h3>Correspondance ({{ applicant.matchPercentage }} %)</h3>
+                      <mat-chip-set>
+                        @for (skill of applicant.matchedSkills; track skill) {
+                          <mat-chip disabled class="skill--matched">
+                            <mat-icon matChipAvatar>check</mat-icon>
+                            {{ skill }}
+                          </mat-chip>
+                        }
+                        @for (skill of applicant.missingSkills; track skill) {
+                          <mat-chip disabled class="skill--missing">{{ skill }}</mat-chip>
+                        }
+                      </mat-chip-set>
+                    </section>
+
+                    @if (applicant.skills.length) {
+                      <section class="applicant__section">
+                        <h3>Compétences déclarées</h3>
+                        <mat-chip-set>
+                          @for (skill of applicant.skills; track skill) {
+                            <mat-chip disabled>{{ skill }}</mat-chip>
+                          }
+                        </mat-chip-set>
+                      </section>
+                    }
+
+                    @if (applicant.experiences.length) {
+                      <section class="applicant__section">
+                        <h3>Expériences</h3>
+                        @for (experience of applicant.experiences; track experience.id) {
+                          <div class="cv-block">
+                            <strong>{{ experience.jobTitle }}</strong>
+                            <span class="muted text-small">
+                              {{ experience.companyName }} · {{ experience.city }} ·
+                              {{ experience.startDate }} —
+                              {{ experience.isCurrent ? 'aujourd’hui' : experience.endDate }}
+                            </span>
+                            @if (experience.tasks.length) {
+                              <ul>
+                                @for (task of experience.tasks; track task) {
+                                  <li>{{ task }}</li>
+                                }
+                              </ul>
+                            }
+                          </div>
+                        }
+                      </section>
+                    }
+
+                    @if (applicant.educations.length) {
+                      <section class="applicant__section">
+                        <h3>Études</h3>
+                        @for (education of applicant.educations; track education.id) {
+                          <div class="cv-block">
+                            <strong>{{ education.diplomaName }} — {{ education.fieldOfStudy }}</strong>
+                            <span class="muted text-small">
+                              {{ education.schoolName }} · {{ education.startDate }} —
+                              {{ education.isCurrent ? 'en cours' : education.endDate }}
+                              @if (education.diplomaObtained) {
+                                · diplôme obtenu
+                              }
+                            </span>
+                          </div>
+                        }
+                      </section>
+                    }
+
+                    @if (applicant.languages.length) {
+                      <section class="applicant__section">
+                        <h3>Langues</h3>
+                        <mat-chip-set>
+                          @for (language of applicant.languages; track language.id) {
+                            <mat-chip disabled>
+                              {{ language.name }} — {{ language.level | languageLevel }}
+                            </mat-chip>
+                          }
+                        </mat-chip-set>
+                      </section>
+                    }
+
+                    @if (applicant.certifications.length) {
+                      <section class="applicant__section">
+                        <h3>Certifications</h3>
+                        <ul class="plain-list">
+                          @for (certification of applicant.certifications; track certification.id) {
+                            <li>{{ certification.name }} — {{ certification.issuer }}</li>
+                          }
+                        </ul>
+                      </section>
+                    }
+
+                    @if (applicant.coverLetter) {
+                      <section class="applicant__section">
+                        <h3>Lettre de présentation</h3>
+                        <p class="cover-letter">{{ applicant.coverLetter }}</p>
+                      </section>
+                    }
+
+                    <mat-divider />
+
+                    <div class="applicant__actions">
+                      @if (applicant.resumeId) {
+                        <button matButton="outlined" (click)="downloadResume(applicant)">
+                          <mat-icon>download</mat-icon>
+                          Télécharger le CV
+                        </button>
+                      }
+
+                      <span class="spacer"></span>
+
+                      @if (applicant.status !== applicationStatus.InReview) {
+                        <button
+                          matButton
+                          (click)="setApplicationStatus(applicant, applicationStatus.InReview)"
+                        >
+                          <mat-icon>hourglass_top</mat-icon>
+                          Mettre en analyse
+                        </button>
+                      }
+                      @if (applicant.status !== applicationStatus.Shortlisted) {
+                        <button
+                          matButton
+                          (click)="setApplicationStatus(applicant, applicationStatus.Shortlisted)"
+                        >
+                          <mat-icon>star</mat-icon>
+                          Présélectionner
+                        </button>
+                      }
+                      @if (applicant.status !== applicationStatus.Accepted) {
+                        <button
+                          matButton="filled"
+                          (click)="setApplicationStatus(applicant, applicationStatus.Accepted)"
+                        >
+                          <mat-icon>check</mat-icon>
+                          Accepter
+                        </button>
+                      }
+                      @if (applicant.status !== applicationStatus.Rejected) {
+                        <button
+                          matButton="filled"
+                          class="danger-action"
+                          (click)="setApplicationStatus(applicant, applicationStatus.Rejected)"
+                        >
+                          <mat-icon>close</mat-icon>
+                          Refuser
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </mat-expansion-panel>
+              }
+            </mat-accordion>
+          } @else {
+            <app-empty-state
+              icon="person_search"
+              title="Aucune candidature reçue"
+              message="Les candidatures apparaîtront ici, classées par pourcentage de correspondance."
+            />
+          }
+        </div>
+      </mat-tab>
+
+      <!-- -------------------------------------------------------------- -->
+      <!-- Onglet visiteurs                                                -->
+      <!-- -------------------------------------------------------------- -->
+      <mat-tab [label]="'Consultations (' + details.viewers.length + ')'">
+        <div class="tab-body">
+          <p class="muted text-small mb-2">
+            Utilisateurs ayant ouvert cette offre, qu'ils aient postulé ou non.
+          </p>
+
+          @if (details.viewers.length) {
+            <div class="surface table-scroll">
+              <table mat-table [dataSource]="details.viewers">
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef>Utilisateur</th>
+                  <td mat-cell *matCellDef="let viewer">{{ viewer.displayName }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="location">
+                  <th mat-header-cell *matHeaderCellDef>Localisation</th>
+                  <td mat-cell *matCellDef="let viewer">{{ viewer.city }}, {{ viewer.country }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="views">
+                  <th mat-header-cell *matHeaderCellDef>Consultations</th>
+                  <td mat-cell *matCellDef="let viewer">{{ viewer.viewCount }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="applied">
+                  <th mat-header-cell *matHeaderCellDef>A postulé</th>
+                  <td mat-cell *matCellDef="let viewer">
+                    @if (viewer.hasApplied) {
+                      <span class="pill pill--yes">Oui</span>
+                    } @else {
+                      <span class="pill pill--no">Non</span>
+                    }
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="last">
+                  <th mat-header-cell *matHeaderCellDef>Dernière visite</th>
+                  <td mat-cell *matCellDef="let viewer">{{ viewer.lastViewedAtUtc | timeAgo }}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="viewerColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: viewerColumns"></tr>
+              </table>
+            </div>
+          } @else {
+            <app-empty-state
+              icon="visibility_off"
+              title="Aucune consultation enregistrée"
+              message="Les consultations sont enregistrées lorsqu'un candidat connecté ouvre l'offre."
+            />
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+}

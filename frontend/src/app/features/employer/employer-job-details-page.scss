@@ -1,0 +1,207 @@
+.loading-block {
+  display: grid;
+  place-items: center;
+  min-height: 40vh;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+  color: var(--jb-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back-link:hover {
+  color: var(--jb-primary);
+}
+
+// --- En-tete -----------------------------------------------------------------
+
+.job-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.job-head__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.job-head__title-row .page-title {
+  margin: 0;
+}
+
+.job-head__meta {
+  margin: 0.4rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+  color: var(--jb-muted);
+}
+
+.job-head__meta .dot {
+  margin: 0 0.25rem;
+}
+
+.job-head__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mini-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--jb-radius-sm);
+  background: var(--jb-surface-alt);
+}
+
+.mini-stat__label {
+  font-size: 0.76rem;
+  color: var(--jb-muted);
+}
+
+.mini-stat__value {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.tab-body {
+  padding: 1.5rem 0 0.5rem;
+}
+
+// --- Candidats ---------------------------------------------------------------
+
+.applicant {
+  margin-bottom: 0.75rem;
+  border-radius: var(--jb-radius-md) !important;
+  border: 1px solid var(--jb-border);
+}
+
+.applicant__header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.5rem 0;
+}
+
+.applicant__identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.applicant__body {
+  padding-top: 0.5rem;
+}
+
+.applicant__section {
+  margin-bottom: 1.25rem;
+}
+
+.applicant__section h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.applicant__section p {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.applicant__section .dot {
+  margin: 0 0.35rem;
+}
+
+.cv-block {
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.5rem;
+  border-left: 3px solid var(--jb-primary-soft);
+  background: var(--jb-surface-alt);
+  border-radius: 0 var(--jb-radius-sm) var(--jb-radius-sm) 0;
+}
+
+.cv-block ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.15rem;
+  font-size: 0.85rem;
+  color: var(--jb-muted);
+}
+
+.plain-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.88rem;
+}
+
+.cover-letter {
+  display: block !important;
+  padding: 0.85rem 1rem;
+  border-radius: var(--jb-radius-sm);
+  background: var(--jb-surface-alt);
+  font-size: 0.9rem;
+  font-style: italic;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+.applicant__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1rem;
+}
+
+.skill--matched {
+  --mdc-chip-elevated-container-color: var(--jb-success-soft);
+  --mdc-chip-label-text-color: var(--jb-success);
+}
+
+.skill--missing {
+  --mdc-chip-elevated-container-color: var(--jb-surface-alt);
+  --mdc-chip-label-text-color: var(--jb-muted);
+}
+
+// --- Visiteurs ---------------------------------------------------------------
+
+.pill {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pill--yes {
+  background: var(--jb-success-soft);
+  color: var(--jb-success);
+}
+
+.pill--no {
+  background: var(--jb-surface-alt);
+  color: var(--jb-muted);
+}
+
+td.mat-mdc-cell,
+th.mat-mdc-header-cell {
+  padding: 0.75rem 1rem;
+}

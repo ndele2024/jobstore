@@ -1,0 +1,140 @@
+<mat-sidenav-container class="shell">
+  <!-- Navigation laterale, utilisee uniquement sur mobile / tablette -->
+  <mat-sidenav
+    #drawer
+    class="shell__drawer"
+    mode="over"
+    [opened]="menuOpen() && isHandset()"
+    (closedStart)="closeMenu()"
+  >
+    <div class="drawer__head">
+      <span class="brand brand--drawer">Job<span>Store</span></span>
+      <button matIconButton aria-label="Fermer le menu" (click)="closeMenu()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-nav-list>
+      @for (item of navItems(); track item.route) {
+        <a
+          mat-list-item
+          [routerLink]="item.route"
+          routerLinkActive="drawer__link--active"
+          (click)="closeMenu()"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+
+    <mat-divider />
+
+    @if (isAuthenticated()) {
+      <mat-nav-list>
+        <a mat-list-item routerLink="/mon-compte" (click)="closeMenu()">
+          <mat-icon matListItemIcon>manage_accounts</mat-icon>
+          <span matListItemTitle>Parametres du compte</span>
+        </a>
+        <a mat-list-item (click)="logout()">
+          <mat-icon matListItemIcon>logout</mat-icon>
+          <span matListItemTitle>Se deconnecter</span>
+        </a>
+      </mat-nav-list>
+    } @else {
+      <div class="drawer__actions">
+        <a matButton="filled" routerLink="/connexion" (click)="closeMenu()">Se connecter</a>
+        <a matButton="outlined" routerLink="/inscription" (click)="closeMenu()">Creer un compte</a>
+      </div>
+    }
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <header class="topbar">
+      <mat-toolbar class="topbar__inner">
+        @if (isHandset()) {
+          <button matIconButton aria-label="Ouvrir le menu" (click)="toggleMenu()">
+            <mat-icon>menu</mat-icon>
+          </button>
+        }
+
+        <a class="brand" routerLink="/" aria-label="Accueil JobStore">Job<span>Store</span></a>
+
+        @if (!isHandset()) {
+          <nav class="topbar__nav">
+            @for (item of navItems(); track item.route) {
+              <a
+                class="topbar__link"
+                [routerLink]="item.route"
+                routerLinkActive="topbar__link--active"
+                [routerLinkActiveOptions]="{ exact: false }"
+              >
+                {{ item.label }}
+              </a>
+            }
+          </nav>
+        }
+
+        <span class="spacer"></span>
+
+        @if (isAuthenticated()) {
+          <button
+            matIconButton
+            class="topbar__avatar"
+            [matMenuTriggerFor]="userMenu"
+            [matTooltip]="user()!.displayName"
+            aria-label="Menu utilisateur"
+          >
+            <span class="avatar">{{ initials() }}</span>
+          </button>
+
+          <mat-menu #userMenu="matMenu" xPosition="before">
+            <div class="user-menu__head">
+              <strong>{{ user()!.displayName }}</strong>
+              <small>{{ user()!.email }}</small>
+            </div>
+            <mat-divider />
+            <a mat-menu-item routerLink="/mon-compte">
+              <mat-icon>manage_accounts</mat-icon>
+              <span>Parametres du compte</span>
+            </a>
+            <button mat-menu-item (click)="logout()">
+              <mat-icon>logout</mat-icon>
+              <span>Se deconnecter</span>
+            </button>
+          </mat-menu>
+        } @else if (!isHandset()) {
+          <a matButton routerLink="/connexion">Se connecter</a>
+          <a matButton="filled" routerLink="/inscription">Creer un compte</a>
+        }
+      </mat-toolbar>
+
+      @if (isLoading()) {
+        <mat-progress-bar mode="indeterminate" class="topbar__progress" />
+      }
+    </header>
+
+    <main class="shell__main">
+      <ng-content />
+    </main>
+
+    <footer class="footer">
+      <div class="footer__inner">
+        <div>
+          <span class="brand brand--footer">Job<span>Store</span></span>
+          <p class="footer__tagline">
+            La plateforme qui rapproche les candidats et les entreprises avec un matching
+            transparent.
+          </p>
+        </div>
+
+        <nav class="footer__links" aria-label="Liens de pied de page">
+          <a routerLink="/emplois">Rechercher un emploi</a>
+          <a routerLink="/inscription/entreprise">Recruter sur JobStore</a>
+          <a routerLink="/connexion">Se connecter</a>
+        </nav>
+      </div>
+      <p class="footer__legal">JobStore - projet de demonstration.</p>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,33 @@
+voici un projet sur lequel je travaille
+conception d'une application web de recherche d'emploi comme indeed ou jobillico avec les fonctionnalités suivantes
+1- utilisateurs : employés
+- creation de compte : nom, prénom, email, téléphone, adresse, mot de passe, confirmation du mot de passe, verification de l'adresse email (envoie d'un code de 6 chiffres à son adresse mail et confirmation)
+- Modification du profil :
+  * informations personelles : nom, prénom, email, téléphone, adresse
+  * téléversement du CV (doc, docx, pdf) lecture automatique et remplissage du formulaire de modification du profil ou remplir manuellement
+  * Etudes : ville et pays, nom école/université, date de début et fin(étude actuelle pas de date de fin), nom du diplôme (DEC, Certificat univ, Baccalauréat, Maitrise, Doctorat ...), domaine d'étude, diplôme obtenu (oui ou non ; si non date d'obtention prévue), nombre de crédits accumulés, Moyenne cummulative
+  * Expériences professionnelles: Titre du poste, nom de l'entreprise, ville et pays, date de début et de fin (emploi en cours pas de date de fin), liste des tâches
+  * compétences : liste des compétences
+  * Langues : langue et niveau d'aptitude (débutant, intermédiaire, avancée, langue maternelle, ...)
+  * certifications professionnelles
+- recherche dans le offres d'emplois disponibles: formulaire pour filtrer suivant domaine, ville, salaire, secteur d'activité ... Affichage minimal des résultats sous forme de lien (titre du poste, nom de l'entreprise, date de fin d'affichage). Quand on clique sur le lien, affichage détaillée de l'offre (on enegistre les utlisateurs qui consulte une offre pour les statistiques, meme s'il ne postule pas)
+- postuler à une offre d'emploi : l'utilisateur doit être connecté. Il peut ajouter de nouveaux CV et choisir celui avec lequel il veut postuler. saisie d'une lettre de présentation (optionel) ou televerser un fichier (doc, docx, pdf, txt)
+- Affichage des emplois pour lesquels on a soumi une candidature, avec le statut (soumis, en analyse, refusé, ...)
+- Tableau de bord pour un utilisateur connecté : interface ergonomique. resumé du profil, proposition des offres d'emploi qui correspondent à son profil (afficher 3 offres avec boutons pour naviguer si plus de 3), recherche rapide d'offres d'emploi
+- modification de l'adresse email ou du mot de passe
+
+2- utilisateurs : employeurs (entreprise)
+- creation de compte : nom de l'entreprise, email, téléphone, adresse (ville et pays obligatoire), secteurs d'activité (plusieurs secteur possible), mot de passe, confirmation du mot de passe, verification de l'adresse email (envoie d'un code de 6 chiffres à son adresse mail et confirmation)
+- tableau de bord employeur : 
+
+- Ajouter/modifier une offre
+
+- modifier le statut d'une offre
+
+- supprimer une offre
+
+- affichée les détails d'une offre : utilisateurs ayant postulés, utilisateurs ayant consultés l'offre. on doit pouvoir afficher les détails des utilisateurs ayant postulés à l'offre leur porcentage de correspondance profil-offre et on doit pouvoir marquer si sa candidature est refusée ou mise en analyse.
+
+3- connexion d'un utilisateur (employé ou entreprise) : connexion par email et mot de passe. double authenfification verification de l'adresse email (envoie d'un code de 6 chiffres à son adresse mail et confirmation)
+
+validation des champs de formulaire avant soumission du formulaire

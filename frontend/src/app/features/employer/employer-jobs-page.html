@@ -1,0 +1,110 @@
+<div class="page">
+  <div class="head">
+    <div>
+      <h1 class="page-title">Mes offres</h1>
+      <p class="page-subtitle">
+        Créez, modifiez et pilotez le statut de vos offres. Cliquez sur une offre pour voir les
+        candidats et les statistiques de consultation.
+      </p>
+    </div>
+
+    <a matButton="filled" routerLink="/entreprise/offres/nouvelle">
+      <mat-icon>add</mat-icon>
+      Nouvelle offre
+    </a>
+  </div>
+
+  <mat-button-toggle-group
+    class="filters"
+    [value]="filter()"
+    (change)="setFilter($event.value)"
+    aria-label="Filtrer les offres par statut"
+  >
+    @for (item of filters; track item.value) {
+      <mat-button-toggle [value]="item.value">{{ item.label }}</mat-button-toggle>
+    }
+  </mat-button-toggle-group>
+
+  @if (loading()) {
+    <div class="loading-block"><mat-spinner diameter="42" /></div>
+  } @else if (visible().length) {
+    <div class="job-list">
+      @for (job of visible(); track job.id) {
+        <article class="job surface">
+          <div class="job__body">
+            <div class="job__head">
+              <a class="job__title" [routerLink]="['/entreprise/offres', job.id]">{{ job.title }}</a>
+              <app-status-chip [jobStatus]="job.status" />
+            </div>
+
+            <p class="job__meta">
+              <mat-icon inline>place</mat-icon> {{ job.city }}, {{ job.country }}
+              <span class="dot">·</span>
+              <mat-icon inline>payments</mat-icon> {{ job.salaryMin | salaryRange: job.salaryMax }}
+            </p>
+            <p class="job__meta">
+              {{ job.contractType | contractType }} · {{ job.workMode | workMode }} ·
+              {{ job.domain }} / {{ job.sector }}
+            </p>
+            <p class="job__meta">Fin d'affichage : {{ job.displayUntil }}</p>
+          </div>
+
+          <div class="job__actions">
+            <a
+              matIconButton
+              matTooltip="Voir les candidats et statistiques"
+              [routerLink]="['/entreprise/offres', job.id]"
+            >
+              <mat-icon>groups</mat-icon>
+            </a>
+            <a
+              matIconButton
+              matTooltip="Modifier l'offre"
+              [routerLink]="['/entreprise/offres', job.id, 'modifier']"
+            >
+              <mat-icon>edit</mat-icon>
+            </a>
+            <button matIconButton matTooltip="Autres actions" [matMenuTriggerFor]="jobMenu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+
+            <mat-menu #jobMenu="matMenu">
+              @if (job.status !== jobStatus.Published) {
+                <button mat-menu-item (click)="changeStatus(job, jobStatus.Published)">
+                  <mat-icon>publish</mat-icon>
+                  <span>Publier l'offre</span>
+                </button>
+              }
+              @if (job.status !== jobStatus.Draft) {
+                <button mat-menu-item (click)="changeStatus(job, jobStatus.Draft)">
+                  <mat-icon>drafts</mat-icon>
+                  <span>Repasser en brouillon</span>
+                </button>
+              }
+              @if (job.status !== jobStatus.Closed) {
+                <button mat-menu-item (click)="changeStatus(job, jobStatus.Closed)">
+                  <mat-icon>lock</mat-icon>
+                  <span>Fermer l'offre</span>
+                </button>
+              }
+              <button mat-menu-item (click)="deleteJob(job)">
+                <mat-icon>delete</mat-icon>
+                <span>Supprimer</span>
+              </button>
+            </mat-menu>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <app-empty-state
+      icon="work_off"
+      title="Aucune offre dans cette catégorie"
+      message="Publiez une offre pour commencer à recevoir des candidatures."
+    >
+      <a matButton="filled" class="mt-2" routerLink="/entreprise/offres/nouvelle">
+        Créer une offre
+      </a>
+    </app-empty-state>
+  }
+</div>

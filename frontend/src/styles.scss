@@ -1,0 +1,336 @@
+// ---------------------------------------------------------------------------
+// Feuille de style globale JobStore
+//
+// 1. Theme Angular Material (Material 3)
+// 2. Jetons de design maison (couleurs, ombres, rayons)
+// 3. Base typographique et reinitialisation
+// 4. Classes utilitaires partagees par les ecrans
+// ---------------------------------------------------------------------------
+
+@use '@angular/material' as mat;
+
+// --- 1. Theme Material ------------------------------------------------------
+
+html {
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: (
+        plain-family: (
+          Inter,
+          'Segoe UI',
+          system-ui,
+          sans-serif,
+        ),
+        brand-family: (
+          'Plus Jakarta Sans',
+          'Segoe UI',
+          system-ui,
+          sans-serif,
+        ),
+      ),
+      density: 0,
+    )
+  );
+}
+
+// --- 2. Jetons de design ----------------------------------------------------
+
+:root {
+  --jb-primary: #1565d8;
+  --jb-primary-soft: #e8f1fe;
+  --jb-accent: #ff6b35;
+  --jb-success: #17875a;
+  --jb-success-soft: #e3f5ed;
+  --jb-warn: #c47d0a;
+  --jb-warn-soft: #fdf3e0;
+  --jb-danger: #c62f45;
+  --jb-danger-soft: #fdeaed;
+  --jb-info: #1565d8;
+  --jb-info-soft: #e8f1fe;
+
+  --jb-text: #10243d;
+  --jb-muted: #5d7189;
+  --jb-surface: #ffffff;
+  --jb-surface-alt: #f1f4f9;
+  --jb-page: #f6f8fc;
+  --jb-border: #dde4ee;
+
+  --jb-radius-sm: 10px;
+  --jb-radius-md: 16px;
+  --jb-radius-lg: 24px;
+
+  --jb-shadow-sm: 0 1px 2px rgba(16, 36, 61, 0.06);
+  --jb-shadow-md: 0 10px 30px rgba(16, 36, 61, 0.09);
+  --jb-shadow-lg: 0 24px 60px rgba(16, 36, 61, 0.14);
+
+  --jb-shell-max: 1240px;
+}
+
+// --- 3. Base ----------------------------------------------------------------
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--jb-page);
+  color: var(--jb-text);
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+  color: var(--jb-text);
+  line-height: 1.25;
+}
+
+a {
+  color: var(--jb-primary);
+}
+
+// Icones Material Symbols (police chargee dans index.html)
+mat-icon.mat-icon,
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', 'Material Icons';
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+// --- 4. Utilitaires ---------------------------------------------------------
+
+.page {
+  width: 100%;
+  max-width: var(--jb-shell-max);
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 3.5rem;
+}
+
+.page--narrow {
+  max-width: 820px;
+}
+
+.page-title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.05rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  margin: 0 0 1.75rem;
+  color: var(--jb-muted);
+  max-width: 74ch;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.surface {
+  background: var(--jb-surface);
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius-md);
+  box-shadow: var(--jb-shadow-sm);
+}
+
+.surface--padded {
+  padding: 1.4rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+}
+
+.grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.grid--4 {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.25rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.form-grid--full {
+  grid-column: 1 / -1;
+}
+
+.actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.actions-row--end {
+  justify-content: flex-end;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.muted {
+  color: var(--jb-muted);
+}
+
+.text-small {
+  font-size: 0.85rem;
+}
+
+.mt-1 {
+  margin-top: 0.5rem;
+}
+.mt-2 {
+  margin-top: 1rem;
+}
+.mt-3 {
+  margin-top: 1.75rem;
+}
+.mb-2 {
+  margin-bottom: 1rem;
+}
+
+// Puces de statut (voir StatusChipComponent et core/utils/labels.ts)
+.tone-success {
+  background: var(--jb-success-soft);
+  color: var(--jb-success);
+}
+.tone-warn {
+  background: var(--jb-warn-soft);
+  color: var(--jb-warn);
+}
+.tone-danger {
+  background: var(--jb-danger-soft);
+  color: var(--jb-danger);
+}
+.tone-info {
+  background: var(--jb-info-soft);
+  color: var(--jb-info);
+}
+.tone-accent {
+  background: #fff0e9;
+  color: #c4531f;
+}
+.tone-neutral {
+  background: var(--jb-surface-alt);
+  color: var(--jb-muted);
+}
+
+// Bouton d'action destructrice
+.danger-action {
+  --mat-button-filled-container-color: var(--jb-danger);
+  --mat-button-filled-label-text-color: #fff;
+}
+
+// Notifications
+.snack-success {
+  --mdc-snackbar-container-color: #10603f;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #b7f0d5;
+}
+
+.snack-error {
+  --mdc-snackbar-container-color: #8f1f31;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #ffd6dc;
+}
+
+.snack-info {
+  --mdc-snackbar-container-color: #123a68;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #cfe3ff;
+}
+
+// Tableaux Material : lisibilite sur petits ecrans
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table.mat-mdc-table {
+  width: 100%;
+  background: transparent;
+}
+
+.chip-external {
+  --mdc-chip-elevated-container-color: var(--jb-info-soft);
+  --mdc-chip-label-text-color: var(--jb-info);
+}
+
+// Retire la marge par defaut sous les champs de formulaire quand on gere l'espacement en grille
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+// Bloc identite du compte (parametres du compte)
+.account-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.account-identity > mat-icon {
+  font-size: 2.4rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  color: var(--jb-primary);
+}
+
+.account-identity p {
+  margin: 0.1rem 0 0;
+}
+
+.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.4rem;
+  color: var(--jb-success);
+  font-weight: 600;
+}
+
+.field-error {
+  margin: 0.2rem 0 0.75rem;
+  color: var(--jb-danger);
+  font-size: 0.78rem;
+}

@@ -1,0 +1,60 @@
+.loading-block {
+  display: grid;
+  place-items: center;
+  min-height: 30vh;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 1rem 1.15rem;
+}
+
+.stat__label {
+  font-size: 0.8rem;
+  color: var(--jb-muted);
+}
+
+.stat__value {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.stat__hint {
+  font-size: 0.76rem;
+  color: var(--jb-muted);
+}
+
+.tab-body {
+  padding: 1.5rem 0 0.5rem;
+}
+
+.block {
+  display: block;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pill--yes {
+  background: var(--jb-success-soft);
+  color: var(--jb-success);
+}
+
+.pill--no {
+  background: var(--jb-warn-soft);
+  color: var(--jb-warn);
+}
+
+td.mat-mdc-cell,
+th.mat-mdc-header-cell {
+  padding: 0.75rem 1rem;
+}

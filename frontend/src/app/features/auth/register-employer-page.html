@@ -1,0 +1,152 @@
+<div class="auth auth--wide">
+  <div class="auth__card">
+    <div class="auth__steps">
+      <span class="auth__step auth__step--done"></span>
+      <span class="auth__step"></span>
+    </div>
+
+    <h1 class="auth__title">Créer un compte entreprise</h1>
+    <p class="auth__subtitle">
+      Étape 1 sur 2 — après validation, un code à 6 chiffres sera envoyé à votre adresse courriel.
+    </p>
+
+    @if (errorMessage()) {
+      <div class="auth__error" role="alert">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <form class="auth__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field class="auth__full">
+        <mat-label>Nom de l'entreprise</mat-label>
+        <input matInput formControlName="companyName" autocomplete="organization" required />
+        @if (form.controls.companyName.touched && form.controls.companyName.invalid) {
+          <mat-error>{{ errorFor('companyName', "Le nom de l'entreprise") }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Adresse courriel</mat-label>
+        <input matInput type="email" formControlName="email" autocomplete="email" required />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <mat-error>{{ errorFor('email', "L'adresse courriel") }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Téléphone</mat-label>
+        <input matInput formControlName="phone" autocomplete="tel" placeholder="+1 514 555-0000" required />
+        @if (form.controls.phone.touched && form.controls.phone.invalid) {
+          <mat-error>{{ errorFor('phone', 'Le téléphone') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="auth__full">
+        <mat-label>Adresse</mat-label>
+        <input matInput formControlName="addressLine" autocomplete="street-address" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Ville</mat-label>
+        <input matInput formControlName="city" [matAutocomplete]="cityAuto" required />
+        <mat-autocomplete #cityAuto="matAutocomplete">
+          @for (city of reference().cities; track city) {
+            <mat-option [value]="city">{{ city }}</mat-option>
+          }
+        </mat-autocomplete>
+        @if (form.controls.city.touched && form.controls.city.invalid) {
+          <mat-error>{{ errorFor('city', 'La ville') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Pays</mat-label>
+        <input matInput formControlName="country" [matAutocomplete]="countryAuto" required />
+        <mat-autocomplete #countryAuto="matAutocomplete">
+          @for (country of reference().countries; track country) {
+            <mat-option [value]="country">{{ country }}</mat-option>
+          }
+        </mat-autocomplete>
+        @if (form.controls.country.touched && form.controls.country.invalid) {
+          <mat-error>{{ errorFor('country', 'Le pays') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Code postal</mat-label>
+        <input matInput formControlName="postalCode" autocomplete="postal-code" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Site web</mat-label>
+        <input matInput formControlName="websiteUrl" placeholder="https://exemple.ca" />
+      </mat-form-field>
+
+      <div class="auth__full">
+        <app-chip-list-input
+          [(values)]="sectors"
+          label="Secteurs d'activité"
+          placeholder="Ajouter un secteur puis Entrée"
+          hint="Vous pouvez sélectionner plusieurs secteurs."
+          [suggestions]="reference().sectors"
+        />
+        @if (sectorsTouched() && sectors().length === 0) {
+          <p class="field-error">Sélectionnez au moins un secteur d'activité.</p>
+        }
+      </div>
+
+      <mat-form-field>
+        <mat-label>Mot de passe</mat-label>
+        <input
+          matInput
+          [type]="hidePassword() ? 'password' : 'text'"
+          formControlName="password"
+          autocomplete="new-password"
+          required
+        />
+        <button
+          matIconButton
+          matSuffix
+          type="button"
+          aria-label="Afficher ou masquer le mot de passe"
+          (click)="hidePassword.set(!hidePassword())"
+        >
+          <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <mat-error>{{ errorFor('password', 'Le mot de passe') }}</mat-error>
+        } @else {
+          <mat-hint>Au moins 8 caractères, une lettre et un chiffre.</mat-hint>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Confirmation du mot de passe</mat-label>
+        <input
+          matInput
+          [type]="hidePassword() ? 'password' : 'text'"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+          required
+        />
+        @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.invalid) {
+          <mat-error>{{ errorFor('confirmPassword', 'La confirmation') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <button
+        matButton="filled"
+        class="auth__submit auth__full"
+        type="submit"
+        [disabled]="submitting()"
+      >
+        {{ submitting() ? 'Création du compte...' : 'Créer le compte entreprise' }}
+      </button>
+    </form>
+
+    <p class="auth__footer">
+      Vous cherchez un emploi ? <a routerLink="/inscription/candidat">Créer un compte candidat</a>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>
+  {{ isEdit() ? 'Modifier la certification' : 'Ajouter une certification' }}
+</h2>
+
+<mat-dialog-content class="dialog-form">
+  <form class="form-grid" [formGroup]="form" novalidate>
+    <mat-form-field class="form-grid--full">
+      <mat-label>Nom de la certification</mat-label>
+      <input matInput formControlName="name" required />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <mat-error>{{ errorFor('name', 'Le nom') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Organisme émetteur</mat-label>
+      <input matInput formControlName="issuer" required />
+      @if (form.controls.issuer.touched && form.controls.issuer.invalid) {
+        <mat-error>{{ errorFor('issuer', "L'organisme") }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Identifiant / numéro</mat-label>
+      <input matInput formControlName="credentialId" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Date d'obtention</mat-label>
+      <input matInput [matDatepicker]="issuePicker" formControlName="issueDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="issuePicker" />
+      <mat-datepicker #issuePicker />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Date d'expiration</mat-label>
+      <input matInput [matDatepicker]="expirationPicker" formControlName="expirationDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="expirationPicker" />
+      <mat-datepicker #expirationPicker />
+      <mat-hint>Laisser vide si la certification n'expire pas.</mat-hint>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" (click)="cancel()">Annuler</button>
+  <button matButton="filled" type="button" (click)="submit()">Enregistrer</button>
+</mat-dialog-actions>

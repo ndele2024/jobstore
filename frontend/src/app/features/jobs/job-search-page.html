@@ -1,0 +1,146 @@
+<div class="page">
+  <h1 class="page-title">Offres d'emploi</h1>
+  <p class="page-subtitle">
+    Affinez la recherche avec les filtres.
+    @if (isEmployee()) {
+      Chaque résultat affiche votre pourcentage de correspondance.
+    } @else {
+      Connectez-vous en tant que candidat pour voir votre correspondance avec chaque offre.
+    }
+  </p>
+
+  <form class="filters surface surface--padded" [formGroup]="form" (ngSubmit)="search()">
+    <div class="filters__main">
+      <mat-form-field class="filters__keyword">
+        <mat-label>Mot-clé</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput formControlName="keyword" placeholder="Poste, compétence, entreprise" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Ville</mat-label>
+        <mat-select formControlName="city">
+          <mat-option [value]="''">Toutes les villes</mat-option>
+          @for (city of reference().cities; track city) {
+            <mat-option [value]="city">{{ city }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <button matButton="filled" type="submit" class="filters__submit">Rechercher</button>
+    </div>
+
+    <mat-accordion class="filters__advanced">
+      <mat-expansion-panel [expanded]="false">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>tune</mat-icon>
+            Filtres avancés
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="form-grid">
+          <mat-form-field>
+            <mat-label>Domaine</mat-label>
+            <mat-select formControlName="domain">
+              <mat-option [value]="''">Tous les domaines</mat-option>
+              @for (domain of reference().domains; track domain) {
+                <mat-option [value]="domain">{{ domain }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Secteur d'activité</mat-label>
+            <mat-select formControlName="sector">
+              <mat-option [value]="''">Tous les secteurs</mat-option>
+              @for (sector of reference().sectors; track sector) {
+                <mat-option [value]="sector">{{ sector }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Salaire minimum</mat-label>
+            <input matInput type="number" formControlName="minimumSalary" min="0" step="1000" />
+            <span matSuffix>&nbsp;$</span>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Type de contrat</mat-label>
+            <mat-select formControlName="contractType">
+              <mat-option [value]="null">Tous les contrats</mat-option>
+              @for (option of reference().contractTypes; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Mode de travail</mat-label>
+            <mat-select formControlName="workMode">
+              <mat-option [value]="null">Tous les modes</mat-option>
+              @for (option of reference().workModes; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Trier par</mat-label>
+            <mat-select formControlName="sortBy">
+              <mat-option value="recent">Plus récentes</mat-option>
+              <mat-option value="deadline">Fin d'affichage proche</mat-option>
+              <mat-option value="salary">Salaire décroissant</mat-option>
+              @if (isEmployee()) {
+                <mat-option value="match">Meilleure correspondance</mat-option>
+              }
+              <mat-option value="title">Titre (A-Z)</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="actions-row actions-row--end mt-1">
+          <button matButton type="button" (click)="reset()">Réinitialiser</button>
+          <button matButton="filled" type="submit">Appliquer les filtres</button>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </form>
+
+  <div class="results__head">
+    <p class="muted">
+      {{ totalCount() }} offre(s) trouvée(s)
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="results__loading">
+      <mat-spinner diameter="42" />
+    </div>
+  } @else if (hasResults()) {
+    <div class="grid grid--2">
+      @for (job of jobs(); track job.id) {
+        <app-job-card [job]="job" />
+      }
+    </div>
+
+    <mat-paginator
+      class="mt-3"
+      [length]="totalCount()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="changePage($event)"
+      aria-label="Pagination des offres"
+    />
+  } @else {
+    <app-empty-state
+      icon="search_off"
+      title="Aucune offre ne correspond à votre recherche"
+      message="Essayez d'élargir les critères : retirez un filtre ou modifiez la ville."
+    >
+      <button matButton="filled" class="mt-2" (click)="reset()">Réinitialiser les filtres</button>
+    </app-empty-state>
+  }
+</div>

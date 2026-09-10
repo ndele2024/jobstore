@@ -1,0 +1,67 @@
+.apply {
+  min-width: min(620px, 82vw);
+}
+
+.apply__section {
+  margin-top: 1.25rem;
+}
+
+.apply__section-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.apply__resumes {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.apply__resume {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius-sm);
+}
+
+.apply__resume-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 500;
+}
+
+.apply__warning {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 0.85rem;
+  border-radius: var(--jb-radius-sm);
+  background: var(--jb-warn-soft);
+  color: var(--jb-warn);
+  font-size: 0.88rem;
+}
+
+.apply__upload {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.apply__file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.35rem 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--jb-surface-alt);
+  font-size: 0.86rem;
+}
+
+.field-error {
+  margin: 0.35rem 0 0;
+  color: var(--jb-danger);
+  font-size: 0.78rem;
+}

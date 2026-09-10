@@ -1,0 +1,77 @@
+<div class="auth">
+  <div class="auth__card">
+    <div class="auth__steps">
+      <span class="auth__step auth__step--done"></span>
+      <span class="auth__step"></span>
+    </div>
+
+    <h1 class="auth__title">Connexion</h1>
+    <p class="auth__subtitle">
+      Étape 1 sur 2 — un code de vérification à 6 chiffres vous sera envoyé par courriel.
+    </p>
+
+    @if (errorMessage()) {
+      <div class="auth__error" role="alert">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <form class="auth__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field class="auth__full">
+        <mat-label>Adresse courriel</mat-label>
+        <mat-icon matPrefix>mail</mat-icon>
+        <input matInput type="email" formControlName="email" autocomplete="email" required />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <mat-error>{{ errorFor('email', "L'adresse courriel") }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="auth__full">
+        <mat-label>Mot de passe</mat-label>
+        <mat-icon matPrefix>lock</mat-icon>
+        <input
+          matInput
+          [type]="hidePassword() ? 'password' : 'text'"
+          formControlName="password"
+          autocomplete="current-password"
+          required
+        />
+        <button
+          matIconButton
+          matSuffix
+          type="button"
+          [attr.aria-label]="hidePassword() ? 'Afficher le mot de passe' : 'Masquer le mot de passe'"
+          (click)="hidePassword.set(!hidePassword())"
+        >
+          <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <mat-error>{{ errorFor('password', 'Le mot de passe') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <button
+        matButton="filled"
+        class="auth__submit auth__full"
+        type="submit"
+        [disabled]="submitting()"
+      >
+        {{ submitting() ? 'Vérification...' : 'Continuer' }}
+      </button>
+    </form>
+
+    <p class="auth__footer">
+      Pas encore de compte ? <a routerLink="/inscription">Créer un compte</a>
+    </p>
+
+    <div class="demo-accounts">
+      <h3>Comptes de démonstration</h3>
+      <ul>
+        <li>Candidat — alicia&#64;example.com / Employee123</li>
+        <li>Entreprise — rh&#64;nordtalent.ca / Employer123</li>
+        <li>Administrateur — ndele2008&#64;gmail.com / Admin1234</li>
+      </ul>
+    </div>
+  </div>
+</div>

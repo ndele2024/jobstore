@@ -1,0 +1,481 @@
+<div class="page">
+  <h1 class="page-title">Mon profil</h1>
+  <p class="page-subtitle">
+    Un profil complet améliore votre correspondance avec les offres et la lisibilité de votre
+    candidature côté entreprise.
+  </p>
+
+  @if (loading()) {
+    <div class="loading-block"><mat-spinner diameter="42" /></div>
+  } @else if (profile(); as profile) {
+    <!-- Barre de completion -->
+    <div class="completion surface surface--padded">
+      <div class="completion__text">
+        <strong>Profil complété à {{ profile.completionPercentage }} %</strong>
+        <span class="muted text-small">
+          Les sections vides réduisent votre score de correspondance avec les offres.
+        </span>
+      </div>
+      <mat-progress-bar mode="determinate" [value]="profile.completionPercentage" />
+    </div>
+
+    <mat-tab-group class="mt-2" animationDuration="150ms" [preserveContent]="true">
+      <!-- ------------------------------------------------------------ -->
+      <!-- Onglet 1 : informations personnelles                          -->
+      <!-- ------------------------------------------------------------ -->
+      <mat-tab label="Informations">
+        <div class="tab-body">
+          @if (parsed(); as parsed) {
+            <div class="parsed surface">
+              <div class="parsed__head">
+                <mat-icon>auto_fix_high</mat-icon>
+                <div>
+                  <strong>Lecture automatique du CV</strong>
+                  <p class="muted text-small">{{ parsed.message }}</p>
+                </div>
+              </div>
+
+              @if (parsed.supported) {
+                <ul class="parsed__list">
+                  @if (parsed.firstName || parsed.lastName) {
+                    <li>Nom détecté : {{ parsed.firstName }} {{ parsed.lastName }}</li>
+                  }
+                  @if (parsed.email) {
+                    <li>Courriel : {{ parsed.email }}</li>
+                  }
+                  @if (parsed.phone) {
+                    <li>Téléphone : {{ parsed.phone }}</li>
+                  }
+                  @if (parsed.city) {
+                    <li>Ville : {{ parsed.city }}, {{ parsed.country }}</li>
+                  }
+                  @if (parsed.skills.length) {
+                    <li>Compétences : {{ parsed.skills.join(', ') }}</li>
+                  }
+                </ul>
+              }
+
+              <div class="actions-row">
+                <button matButton="filled" (click)="applyParsedData()">
+                  <mat-icon>content_paste_go</mat-icon>
+                  Pré-remplir le formulaire
+                </button>
+                <button matButton (click)="dismissParsedData()">Ignorer</button>
+              </div>
+            </div>
+          }
+
+          <form class="form-grid" [formGroup]="infoForm" (ngSubmit)="saveInfo()" novalidate>
+            <mat-form-field>
+              <mat-label>Prénom</mat-label>
+              <input matInput formControlName="firstName" required />
+              @if (infoForm.controls.firstName.touched && infoForm.controls.firstName.invalid) {
+                <mat-error>{{ infoError('firstName', 'Le prénom') }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Nom</mat-label>
+              <input matInput formControlName="lastName" required />
+              @if (infoForm.controls.lastName.touched && infoForm.controls.lastName.invalid) {
+                <mat-error>{{ infoError('lastName', 'Le nom') }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Adresse courriel</mat-label>
+              <input matInput [value]="profile.email" disabled />
+              <mat-hint>Modifiable dans « Paramètres du compte ».</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Téléphone</mat-label>
+              <input matInput formControlName="phone" required />
+              @if (infoForm.controls.phone.touched && infoForm.controls.phone.invalid) {
+                <mat-error>{{ infoError('phone', 'Le téléphone') }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="form-grid--full">
+              <mat-label>Adresse</mat-label>
+              <input matInput formControlName="addressLine" />
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Ville</mat-label>
+              <input matInput formControlName="city" [matAutocomplete]="cityAuto" required />
+              <mat-autocomplete #cityAuto="matAutocomplete">
+                @for (city of reference().cities; track city) {
+                  <mat-option [value]="city">{{ city }}</mat-option>
+                }
+              </mat-autocomplete>
+              @if (infoForm.controls.city.touched && infoForm.controls.city.invalid) {
+                <mat-error>{{ infoError('city', 'La ville') }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Pays</mat-label>
+              <input matInput formControlName="country" [matAutocomplete]="countryAuto" required />
+              <mat-autocomplete #countryAuto="matAutocomplete">
+                @for (country of reference().countries; track country) {
+                  <mat-option [value]="country">{{ country }}</mat-option>
+                }
+              </mat-autocomplete>
+              @if (infoForm.controls.country.touched && infoForm.controls.country.invalid) {
+                <mat-error>{{ infoError('country', 'Le pays') }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Code postal</mat-label>
+              <input matInput formControlName="postalCode" />
+            </mat-form-field>
+
+            <mat-form-field class="form-grid--full">
+              <mat-label>Titre professionnel</mat-label>
+              <input matInput formControlName="headline" maxlength="120" />
+              <mat-hint>Exemple : Développeuse full-stack orientée produit</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field class="form-grid--full">
+              <mat-label>Présentation</mat-label>
+              <textarea matInput formControlName="summary" rows="4" maxlength="1200"></textarea>
+            </mat-form-field>
+
+            <div class="form-grid--full actions-row actions-row--end">
+              <button matButton="filled" type="submit" [disabled]="savingInfo()">
+                Enregistrer les informations
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- ------------------------------------------------------------ -->
+      <!-- Onglet 2 : CV                                                 -->
+      <!-- ------------------------------------------------------------ -->
+      <mat-tab label="CV">
+        <div class="tab-body">
+          <div class="upload-zone">
+            <mat-icon>cloud_upload</mat-icon>
+            <div>
+              <strong>Téléverser un CV</strong>
+              <p class="muted text-small">
+                Formats acceptés : PDF, DOC, DOCX, TXT (5 Mo max). Le contenu est analysé pour
+                pré-remplir votre profil.
+              </p>
+            </div>
+            <button matButton="filled" [disabled]="uploading()" (click)="resumeInput.click()">
+              {{ uploading() ? 'Téléversement...' : 'Choisir un fichier' }}
+            </button>
+            <input
+              #resumeInput
+              type="file"
+              hidden
+              accept=".pdf,.doc,.docx,.txt"
+              (change)="onResumeSelected($event)"
+            />
+          </div>
+
+          @if (profile.resumes.length) {
+            <div class="item-list mt-2">
+              @for (resume of profile.resumes; track resume.id) {
+                <article class="item">
+                  <mat-icon class="item__icon">description</mat-icon>
+
+                  <div class="item__body">
+                    <strong>{{ resume.fileName }}</strong>
+                    <p class="item__meta">
+                      {{ resume.sizeInBytes | fileSize }}
+                      @if (resume.isDefault) {
+                        <span class="badge-default">CV par défaut</span>
+                      }
+                    </p>
+                  </div>
+
+                  <div class="item__actions">
+                    @if (!resume.isDefault) {
+                      <button
+                        matIconButton
+                        matTooltip="Définir comme CV par défaut"
+                        (click)="setDefaultResume(resume)"
+                      >
+                        <mat-icon>star</mat-icon>
+                      </button>
+                    }
+                    <button matIconButton matTooltip="Télécharger" (click)="downloadResume(resume)">
+                      <mat-icon>download</mat-icon>
+                    </button>
+                    <button matIconButton matTooltip="Supprimer" (click)="deleteResume(resume)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <app-empty-state
+              icon="upload_file"
+              title="Aucun CV enregistré"
+              message="Un CV est obligatoire pour postuler à une offre."
+            />
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ------------------------------------------------------------ -->
+      <!-- Onglet 3 : etudes                                             -->
+      <!-- ------------------------------------------------------------ -->
+      <mat-tab label="Études">
+        <div class="tab-body">
+          <div class="actions-row actions-row--end mb-2">
+            <button matButton="filled" (click)="openEducation(null)">
+              <mat-icon>add</mat-icon>
+              Ajouter une formation
+            </button>
+          </div>
+
+          @if (profile.educations.length) {
+            <div class="item-list">
+              @for (education of profile.educations; track education.id) {
+                <article class="item">
+                  <mat-icon class="item__icon">school</mat-icon>
+
+                  <div class="item__body">
+                    <strong>{{ education.diplomaName }} — {{ education.fieldOfStudy }}</strong>
+                    <p class="item__meta">
+                      {{ education.schoolName }} · {{ education.city }}, {{ education.country }}
+                    </p>
+                    <p class="item__meta">
+                      {{ education.startDate }} —
+                      {{ education.isCurrent ? 'en cours' : education.endDate }}
+                      @if (education.diplomaObtained) {
+                        <span class="badge-success">Diplôme obtenu</span>
+                      } @else if (education.expectedGraduationDate) {
+                        <span class="badge-info">
+                          Obtention prévue : {{ education.expectedGraduationDate }}
+                        </span>
+                      }
+                    </p>
+                    @if (education.accumulatedCredits || education.gpa) {
+                      <p class="item__meta">
+                        @if (education.accumulatedCredits) {
+                          {{ education.accumulatedCredits }} crédits
+                        }
+                        @if (education.gpa) {
+                          · Moyenne : {{ education.gpa }}
+                        }
+                      </p>
+                    }
+                  </div>
+
+                  <div class="item__actions">
+                    <button matIconButton matTooltip="Modifier" (click)="openEducation(education)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button matIconButton matTooltip="Supprimer" (click)="deleteEducation(education)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <app-empty-state
+              icon="school"
+              title="Aucune formation enregistrée"
+              message="Ajoutez vos diplômes et formations en cours."
+            />
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ------------------------------------------------------------ -->
+      <!-- Onglet 4 : experiences                                        -->
+      <!-- ------------------------------------------------------------ -->
+      <mat-tab label="Expériences">
+        <div class="tab-body">
+          <div class="actions-row actions-row--end mb-2">
+            <button matButton="filled" (click)="openExperience(null)">
+              <mat-icon>add</mat-icon>
+              Ajouter une expérience
+            </button>
+          </div>
+
+          @if (profile.experiences.length) {
+            <div class="item-list">
+              @for (experience of profile.experiences; track experience.id) {
+                <article class="item">
+                  <mat-icon class="item__icon">work</mat-icon>
+
+                  <div class="item__body">
+                    <strong>{{ experience.jobTitle }}</strong>
+                    <p class="item__meta">
+                      {{ experience.companyName }} · {{ experience.city }}, {{ experience.country }}
+                    </p>
+                    <p class="item__meta">
+                      {{ experience.startDate }} —
+                      {{ experience.isCurrent ? 'aujourd’hui' : experience.endDate }}
+                    </p>
+
+                    @if (experience.tasks.length) {
+                      <ul class="item__tasks">
+                        @for (task of experience.tasks; track task) {
+                          <li>{{ task }}</li>
+                        }
+                      </ul>
+                    }
+                  </div>
+
+                  <div class="item__actions">
+                    <button matIconButton matTooltip="Modifier" (click)="openExperience(experience)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      matIconButton
+                      matTooltip="Supprimer"
+                      (click)="deleteExperience(experience)"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <app-empty-state
+              icon="work"
+              title="Aucune expérience enregistrée"
+              message="Décrivez vos postes précédents et vos tâches principales."
+            />
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ------------------------------------------------------------ -->
+      <!-- Onglet 5 : competences et langues                             -->
+      <!-- ------------------------------------------------------------ -->
+      <mat-tab label="Compétences et langues">
+        <div class="tab-body">
+          <section>
+            <h2 class="section-title"><mat-icon>psychology</mat-icon> Compétences</h2>
+            <app-chip-list-input
+              [(values)]="skills"
+              label="Vos compétences"
+              placeholder="Ajouter une compétence puis Entrée"
+              hint="Ces compétences alimentent directement le calcul de correspondance avec les offres."
+              [suggestions]="reference().skills"
+            />
+
+            <div class="actions-row actions-row--end">
+              <button matButton="filled" [disabled]="savingSkills()" (click)="saveSkills()">
+                Enregistrer les compétences
+              </button>
+            </div>
+          </section>
+
+          <mat-divider class="mt-3" />
+
+          <section class="mt-3">
+            <div class="actions-row">
+              <h2 class="section-title"><mat-icon>translate</mat-icon> Langues</h2>
+              <span class="spacer"></span>
+              <button matButton="filled" (click)="openLanguage(null)">
+                <mat-icon>add</mat-icon>
+                Ajouter une langue
+              </button>
+            </div>
+
+            @if (profile.languages.length) {
+              <div class="item-list mt-2">
+                @for (language of profile.languages; track language.id) {
+                  <article class="item">
+                    <mat-icon class="item__icon">translate</mat-icon>
+                    <div class="item__body">
+                      <strong>{{ language.name }}</strong>
+                      <p class="item__meta">{{ language.level | languageLevel }}</p>
+                    </div>
+                    <div class="item__actions">
+                      <button matIconButton matTooltip="Modifier" (click)="openLanguage(language)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button matIconButton matTooltip="Supprimer" (click)="deleteLanguage(language)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <app-empty-state icon="translate" title="Aucune langue enregistrée" />
+            }
+          </section>
+        </div>
+      </mat-tab>
+
+      <!-- ------------------------------------------------------------ -->
+      <!-- Onglet 6 : certifications                                     -->
+      <!-- ------------------------------------------------------------ -->
+      <mat-tab label="Certifications">
+        <div class="tab-body">
+          <div class="actions-row actions-row--end mb-2">
+            <button matButton="filled" (click)="openCertification(null)">
+              <mat-icon>add</mat-icon>
+              Ajouter une certification
+            </button>
+          </div>
+
+          @if (profile.certifications.length) {
+            <div class="item-list">
+              @for (certification of profile.certifications; track certification.id) {
+                <article class="item">
+                  <mat-icon class="item__icon">workspace_premium</mat-icon>
+
+                  <div class="item__body">
+                    <strong>{{ certification.name }}</strong>
+                    <p class="item__meta">{{ certification.issuer }}</p>
+                    <p class="item__meta">
+                      @if (certification.issueDate) {
+                        Obtenue le {{ certification.issueDate }}
+                      }
+                      @if (certification.expirationDate) {
+                        · expire le {{ certification.expirationDate }}
+                      }
+                      @if (certification.credentialId) {
+                        · n° {{ certification.credentialId }}
+                      }
+                    </p>
+                  </div>
+
+                  <div class="item__actions">
+                    <button
+                      matIconButton
+                      matTooltip="Modifier"
+                      (click)="openCertification(certification)"
+                    >
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      matIconButton
+                      matTooltip="Supprimer"
+                      (click)="deleteCertification(certification)"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <app-empty-state
+              icon="workspace_premium"
+              title="Aucune certification enregistrée"
+              message="Ajoutez vos certifications professionnelles pour renforcer votre dossier."
+            />
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

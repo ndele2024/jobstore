@@ -1,0 +1,97 @@
+<h2 mat-dialog-title>{{ isEdit() ? "Modifier l'expérience" : 'Ajouter une expérience' }}</h2>
+
+<mat-dialog-content class="dialog-form">
+  <form class="form-grid" [formGroup]="form" novalidate>
+    <mat-form-field>
+      <mat-label>Titre du poste</mat-label>
+      <input matInput formControlName="jobTitle" required />
+      @if (form.controls.jobTitle.touched && form.controls.jobTitle.invalid) {
+        <mat-error>{{ errorFor('jobTitle', 'Le titre du poste') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Entreprise</mat-label>
+      <input matInput formControlName="companyName" required />
+      @if (form.controls.companyName.touched && form.controls.companyName.invalid) {
+        <mat-error>{{ errorFor('companyName', "Le nom de l'entreprise") }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Ville</mat-label>
+      <input matInput formControlName="city" [matAutocomplete]="cityAuto" required />
+      <mat-autocomplete #cityAuto="matAutocomplete">
+        @for (city of reference().cities; track city) {
+          <mat-option [value]="city">{{ city }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (form.controls.city.touched && form.controls.city.invalid) {
+        <mat-error>{{ errorFor('city', 'La ville') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Pays</mat-label>
+      <input matInput formControlName="country" [matAutocomplete]="countryAuto" required />
+      <mat-autocomplete #countryAuto="matAutocomplete">
+        @for (country of reference().countries; track country) {
+          <mat-option [value]="country">{{ country }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (form.controls.country.touched && form.controls.country.invalid) {
+        <mat-error>{{ errorFor('country', 'Le pays') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Date de début</mat-label>
+      <input matInput [matDatepicker]="startPicker" formControlName="startDate" required />
+      <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+      <mat-datepicker #startPicker />
+      @if (form.controls.startDate.touched && form.controls.startDate.invalid) {
+        <mat-error>{{ errorFor('startDate', 'La date de début') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Date de fin</mat-label>
+      <input
+        matInput
+        [matDatepicker]="endPicker"
+        formControlName="endDate"
+        [required]="!form.controls.isCurrent.value"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+      <mat-datepicker #endPicker />
+      @if (form.controls.endDate.touched && form.controls.endDate.invalid) {
+        <mat-error>{{ errorFor('endDate', 'La date de fin') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="form-grid--full">
+      <mat-checkbox formControlName="isCurrent">Emploi en cours (pas de date de fin)</mat-checkbox>
+    </div>
+
+    <div class="form-grid--full">
+      <app-chip-list-input
+        [(values)]="tasks"
+        label="Tâches et réalisations"
+        placeholder="Décrivez une tâche puis Entrée"
+        hint="Une tâche par entrée. Ces éléments alimentent aussi le calcul de correspondance."
+      />
+    </div>
+
+    @if (form.hasError('dateRange')) {
+      <p class="dialog-error form-grid--full">
+        <mat-icon inline>error</mat-icon>
+        La date de fin doit être postérieure à la date de début.
+      </p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" (click)="cancel()">Annuler</button>
+  <button matButton="filled" type="button" (click)="submit()">Enregistrer</button>
+</mat-dialog-actions>

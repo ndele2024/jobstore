@@ -1,0 +1,194 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.shell {
+  min-height: 100vh;
+  background: var(--jb-page);
+}
+
+.shell__main {
+  min-height: calc(100vh - 260px);
+}
+
+// --- Barre superieure --------------------------------------------------------
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--jb-border);
+}
+
+.topbar__inner {
+  max-width: var(--jb-shell-max);
+  margin: 0 auto;
+  width: 100%;
+  background: transparent;
+  gap: 0.6rem;
+  padding-inline: 1rem;
+}
+
+.topbar__progress {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+}
+
+.brand {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  color: var(--jb-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand span {
+  color: var(--jb-primary);
+}
+
+.brand--footer {
+  font-size: 1.15rem;
+}
+
+.topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 1.25rem;
+}
+
+.topbar__link {
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--jb-muted);
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.topbar__link:hover {
+  background: var(--jb-surface-alt);
+  color: var(--jb-text);
+}
+
+.topbar__link--active {
+  background: var(--jb-primary-soft);
+  color: var(--jb-primary);
+  font-weight: 600;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--jb-primary);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.user-menu__head {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 1rem 0.5rem;
+  line-height: 1.35;
+}
+
+.user-menu__head small {
+  color: var(--jb-muted);
+}
+
+// --- Tiroir mobile -----------------------------------------------------------
+
+.shell__drawer {
+  width: min(300px, 84vw);
+  padding-bottom: 1rem;
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 0.6rem 0.9rem 1.15rem;
+  border-bottom: 1px solid var(--jb-border);
+}
+
+.drawer__link--active {
+  background: var(--jb-primary-soft);
+  color: var(--jb-primary);
+}
+
+.drawer__actions {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1.15rem;
+}
+
+// --- Pied de page ------------------------------------------------------------
+
+.footer {
+  margin-top: 3rem;
+  padding: 2.5rem 1.25rem 1.5rem;
+  background: #0f2743;
+  color: #d6e2f2;
+}
+
+.footer__inner {
+  max-width: var(--jb-shell-max);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: space-between;
+}
+
+.footer .brand,
+.footer .brand span {
+  color: #fff;
+}
+
+.footer__tagline {
+  margin: 0.5rem 0 0;
+  max-width: 42ch;
+  font-size: 0.9rem;
+  color: #a9c0dc;
+}
+
+.footer__links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer__links a {
+  color: #d6e2f2;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.footer__links a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.footer__legal {
+  max-width: var(--jb-shell-max);
+  margin: 2rem auto 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 0.8rem;
+  color: #8fa9c9;
+}

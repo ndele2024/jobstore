@@ -1,0 +1,68 @@
+@if (pending(); as pending) {
+  <div class="auth">
+    <div class="auth__card">
+      <div class="auth__steps">
+        <span class="auth__step auth__step--done"></span>
+        <span class="auth__step auth__step--done"></span>
+      </div>
+
+      <h1 class="auth__title">{{ title() }}</h1>
+      <p class="auth__subtitle">
+        {{ pending.challenge.message }}<br />
+        Code envoyé à <strong>{{ pending.challenge.email }}</strong>.
+      </p>
+
+      @if (pending.challenge.devCode) {
+        <div class="auth__hint">
+          <mat-icon>science</mat-icon>
+          <span>
+            Mode développement : le code est <strong>{{ pending.challenge.devCode }}</strong
+            >. En production, il n'est envoyé que par courriel.
+          </span>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="auth__error" role="alert">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <form class="auth__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field class="auth__full code-field">
+          <mat-label>Code à 6 chiffres</mat-label>
+          <input
+            matInput
+            formControlName="code"
+            inputmode="numeric"
+            maxlength="6"
+            autocomplete="one-time-code"
+            placeholder="000000"
+            required
+          />
+          @if (form.controls.code.touched && form.controls.code.invalid) {
+            <mat-error>Le code doit contenir exactement 6 chiffres.</mat-error>
+          }
+        </mat-form-field>
+
+        <button
+          matButton="filled"
+          class="auth__submit auth__full"
+          type="submit"
+          [disabled]="submitting()"
+        >
+          {{ submitting() ? 'Vérification...' : 'Confirmer' }}
+        </button>
+      </form>
+
+      <div class="verify__actions">
+        <button matButton type="button" [disabled]="resending()" (click)="resend()">
+          <mat-icon>refresh</mat-icon>
+          Renvoyer le code
+        </button>
+        <button matButton type="button" (click)="cancel()">Annuler</button>
+      </div>
+    </div>
+  </div>
+}

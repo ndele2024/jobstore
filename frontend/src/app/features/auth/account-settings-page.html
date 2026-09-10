@@ -1,0 +1,90 @@
+<div class="page page--narrow">
+  <h1 class="page-title">Paramètres du compte</h1>
+  <p class="page-subtitle">
+    Gérez vos identifiants de connexion. Toute modification d'adresse courriel est confirmée par un
+    code à 6 chiffres.
+  </p>
+
+  @if (user(); as user) {
+    <mat-card appearance="outlined" class="surface--padded mb-2">
+      <div class="account-identity">
+        <mat-icon>account_circle</mat-icon>
+        <div>
+          <strong>{{ user.displayName }}</strong>
+          <p class="muted text-small">
+            {{ user.email }} — compte {{ user.role | userRole }}
+            @if (user.emailVerified) {
+              <span class="verified"><mat-icon inline>verified</mat-icon> adresse vérifiée</span>
+            }
+          </p>
+        </div>
+      </div>
+    </mat-card>
+  }
+
+  <mat-card appearance="outlined" class="surface--padded mb-2">
+    <h2 class="section-title"><mat-icon>alternate_email</mat-icon> Changer l'adresse courriel</h2>
+
+    <form class="form-grid" [formGroup]="emailForm" (ngSubmit)="submitEmail()" novalidate>
+      <mat-form-field>
+        <mat-label>Nouvelle adresse courriel</mat-label>
+        <input matInput type="email" formControlName="newEmail" required />
+        @if (emailForm.controls.newEmail.touched && emailForm.controls.newEmail.invalid) {
+          <mat-error>{{ emailError('newEmail', "L'adresse courriel") }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Mot de passe actuel</mat-label>
+        <input matInput type="password" formControlName="currentPassword" autocomplete="current-password" required />
+        @if (emailForm.controls.currentPassword.touched && emailForm.controls.currentPassword.invalid) {
+          <mat-error>{{ emailError('currentPassword', 'Le mot de passe') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="form-grid--full actions-row actions-row--end">
+        <button matButton="filled" type="submit" [disabled]="savingEmail()">
+          Envoyer le code de confirmation
+        </button>
+      </div>
+    </form>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="surface--padded">
+    <h2 class="section-title"><mat-icon>password</mat-icon> Changer le mot de passe</h2>
+
+    <form class="form-grid" [formGroup]="passwordForm" (ngSubmit)="submitPassword()" novalidate>
+      <mat-form-field class="form-grid--full">
+        <mat-label>Mot de passe actuel</mat-label>
+        <input matInput type="password" formControlName="currentPassword" autocomplete="current-password" required />
+        @if (passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid) {
+          <mat-error>{{ passwordError('currentPassword', 'Le mot de passe actuel') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Nouveau mot de passe</mat-label>
+        <input matInput type="password" formControlName="newPassword" autocomplete="new-password" required />
+        @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid) {
+          <mat-error>{{ passwordError('newPassword', 'Le nouveau mot de passe') }}</mat-error>
+        } @else {
+          <mat-hint>Au moins 8 caractères, une lettre et un chiffre.</mat-hint>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Confirmation</mat-label>
+        <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" required />
+        @if (passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.invalid) {
+          <mat-error>{{ passwordError('confirmPassword', 'La confirmation') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="form-grid--full actions-row actions-row--end">
+        <button matButton="filled" type="submit" [disabled]="savingPassword()">
+          Mettre à jour le mot de passe
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>

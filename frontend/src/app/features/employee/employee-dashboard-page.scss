@@ -1,0 +1,234 @@
+.loading-block {
+  display: grid;
+  place-items: center;
+  min-height: 40vh;
+}
+
+.quick-search {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.quick-search button {
+  height: 52px;
+  padding-inline: 1.5rem;
+}
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+
+.section-head .section-title {
+  margin: 0;
+}
+
+// --- Indicateurs -------------------------------------------------------------
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1rem 1.15rem;
+}
+
+.stat__label {
+  font-size: 0.8rem;
+  color: var(--jb-muted);
+}
+
+.stat__value {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+// --- Recommandations ---------------------------------------------------------
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pager__label {
+  font-size: 0.85rem;
+  color: var(--jb-muted);
+  min-width: 3rem;
+  text-align: center;
+}
+
+.reco {
+  display: block;
+  padding: 1.15rem;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.reco:hover {
+  transform: translateY(-2px);
+  border-color: var(--jb-primary);
+  box-shadow: var(--jb-shadow-md);
+}
+
+.reco__head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.reco__title {
+  margin: 0 0 0.15rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.reco__employer {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--jb-muted);
+}
+
+.reco__meta,
+.reco__salary {
+  margin: 0.7rem 0 0;
+  font-size: 0.85rem;
+  color: var(--jb-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.reco__salary {
+  color: var(--jb-text);
+  font-weight: 600;
+}
+
+.reco__missing,
+.reco__match {
+  margin: 0.75rem 0 0;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--jb-border);
+  font-size: 0.8rem;
+  color: var(--jb-muted);
+}
+
+.reco__match {
+  color: var(--jb-success);
+  font-weight: 600;
+}
+
+// --- Liste de candidatures ---------------------------------------------------
+
+.applications {
+  overflow: hidden;
+}
+
+.application {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.15rem;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--jb-border);
+}
+
+.application:last-child {
+  border-bottom: none;
+}
+
+.application:hover {
+  background: var(--jb-surface-alt);
+}
+
+.application__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.application__main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// --- Colonne profil ----------------------------------------------------------
+
+.dashboard-aside {
+  position: sticky;
+  top: 88px;
+}
+
+.profile__headline {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+}
+
+.profile__completion {
+  margin: 1.15rem 0 0.5rem;
+}
+
+.profile__completion-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.status-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.status-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 1023px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-aside {
+    position: static;
+  }
+}
+
+@media (max-width: 599px) {
+  .quick-search {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-search button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,73 @@
+# ---------------------------------------------------------------------------
+# JobStore - fichiers exclus du suivi Git
+# ---------------------------------------------------------------------------
+
+# --- .NET / Visual Studio ---------------------------------------------------
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.dll
+*.pdb
+*.cache
+
+# Dossier local du SDK .NET (cache NuGet du poste, ~48 Mo)
+.dotnet-home/
+
+# Secrets et configuration locale
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+
+# --- Angular / Node ---------------------------------------------------------
+node_modules/
+dist/
+out-tsc/
+.angular/
+tmp/
+*.tsbuildinfo
+.npm/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variables d'environnement du frontend
+.env
+.env.local
+.env.*.local
+
+# --- Logs et fichiers temporaires -------------------------------------------
+*.log
+restore.log
+restore-api.log
+
+# --- Outils et editeurs -----------------------------------------------------
+.idea/
+.fleet/
+*.swp
+*.swo
+*~
+
+# VS Code : on garde les reglages partages, on ignore le reste
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# Claude Code : on garde launch.json (config de previsualisation partagee)
+.claude/settings.local.json
+
+# --- Systeme d'exploitation -------------------------------------------------
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+.DS_Store

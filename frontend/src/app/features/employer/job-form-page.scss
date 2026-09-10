@@ -1,0 +1,28 @@
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+  color: var(--jb-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back-link:hover {
+  color: var(--jb-primary);
+}
+
+.loading-block {
+  display: grid;
+  place-items: center;
+  min-height: 30vh;
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--jb-danger);
+  font-size: 0.82rem;
+}

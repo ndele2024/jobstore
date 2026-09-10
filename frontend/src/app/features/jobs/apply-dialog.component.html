@@ -1,0 +1,122 @@
+<h2 mat-dialog-title>Postuler — {{ data.job.title }}</h2>
+
+<mat-dialog-content class="apply">
+  <p class="muted text-small">
+    {{ data.job.employerName }} · {{ data.job.city }}, {{ data.job.country }}
+  </p>
+
+  <form [formGroup]="form" novalidate>
+    <section class="apply__section">
+      <h3 class="apply__section-title">1. Choisissez le CV à envoyer</h3>
+
+      @if (loading()) {
+        <p class="muted">Chargement de vos CV...</p>
+      } @else if (resumes().length) {
+        <mat-radio-group formControlName="resumeId" class="apply__resumes">
+          @for (resume of resumes(); track resume.id) {
+            <mat-radio-button [value]="resume.id" class="apply__resume">
+              <span class="apply__resume-name">
+                <mat-icon inline>description</mat-icon>
+                {{ resume.fileName }}
+              </span>
+              <span class="muted text-small">
+                {{ resume.sizeInBytes | fileSize }}
+                @if (resume.isDefault) {
+                  · CV par défaut
+                }
+              </span>
+            </mat-radio-button>
+          }
+        </mat-radio-group>
+      } @else {
+        <p class="apply__warning">
+          <mat-icon inline>info</mat-icon>
+          Aucun CV enregistré. Téléversez-en un pour pouvoir postuler.
+        </p>
+      }
+
+      <button matButton="outlined" type="button" [disabled]="uploading()" (click)="resumeInput.click()">
+        <mat-icon>upload_file</mat-icon>
+        {{ uploading() ? 'Téléversement...' : 'Ajouter un nouveau CV' }}
+      </button>
+      <input
+        #resumeInput
+        type="file"
+        hidden
+        accept=".pdf,.doc,.docx,.txt"
+        (change)="onResumeSelected($event)"
+      />
+
+      @if (form.controls.resumeId.touched && form.controls.resumeId.invalid) {
+        <p class="field-error">Sélectionnez le CV à joindre à votre candidature.</p>
+      }
+    </section>
+
+    <section class="apply__section">
+      <h3 class="apply__section-title">2. Lettre de présentation (facultative)</h3>
+
+      <mat-tab-group animationDuration="120ms">
+        <mat-tab label="Rédiger">
+          <mat-form-field class="full-width mt-2">
+            <mat-label>Votre message</mat-label>
+            <textarea
+              matInput
+              formControlName="coverLetter"
+              rows="7"
+              maxlength="5000"
+              placeholder="Expliquez en quelques lignes ce qui vous motive pour ce poste."
+            ></textarea>
+            <mat-hint align="end">{{ form.controls.coverLetter.value.length }} / 5000</mat-hint>
+          </mat-form-field>
+        </mat-tab>
+
+        <mat-tab label="Téléverser un fichier">
+          <div class="apply__upload mt-2">
+            <button matButton="outlined" type="button" (click)="letterInput.click()">
+              <mat-icon>attach_file</mat-icon>
+              Choisir un fichier
+            </button>
+            <input
+              #letterInput
+              type="file"
+              hidden
+              accept=".pdf,.doc,.docx,.txt"
+              (change)="onLetterSelected($event)"
+            />
+
+            @if (letterFileName()) {
+              <span class="apply__file">
+                <mat-icon inline>description</mat-icon>
+                {{ letterFileName() }}
+                <button matIconButton type="button" aria-label="Retirer le fichier" (click)="clearLetterFile()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </span>
+            }
+
+            @if (fileError()) {
+              <p class="field-error">{{ fileError() }}</p>
+            }
+
+            <p class="muted text-small">
+              Formats acceptés : PDF, DOC, DOCX, TXT. Le contenu d'un fichier .txt est repris
+              automatiquement dans l'onglet « Rédiger ».
+            </p>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </section>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" (click)="close()">Annuler</button>
+  <button
+    matButton="filled"
+    type="button"
+    [disabled]="submitting() || resumes().length === 0"
+    (click)="submit()"
+  >
+    {{ submitting() ? 'Envoi...' : 'Envoyer ma candidature' }}
+  </button>
+</mat-dialog-actions>

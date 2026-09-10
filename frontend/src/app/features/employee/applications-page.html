@@ -1,0 +1,71 @@
+<div class="page">
+  <h1 class="page-title">Mes candidatures</h1>
+  <p class="page-subtitle">
+    Suivez l'avancement de chaque dossier. Le statut est mis à jour par l'entreprise.
+  </p>
+
+  <mat-button-toggle-group
+    class="filters"
+    [value]="filter()"
+    (change)="setFilter($event.value)"
+    aria-label="Filtrer par statut"
+  >
+    @for (status of statuses; track status.value) {
+      <mat-button-toggle [value]="status.value">{{ status.label }}</mat-button-toggle>
+    }
+  </mat-button-toggle-group>
+
+  @if (loading()) {
+    <div class="loading-block"><mat-spinner diameter="42" /></div>
+  } @else if (visible().length) {
+    <div class="applications">
+      @for (application of visible(); track application.id) {
+        <article class="application surface">
+          <app-match-gauge [percentage]="application.matchPercentage" />
+
+          <div class="application__body">
+            <a class="application__title" [routerLink]="['/emplois', application.jobId]">
+              {{ application.jobTitle }}
+            </a>
+            <p class="application__meta">
+              {{ application.employerName }} · {{ application.city }}, {{ application.country }}
+            </p>
+            <p class="application__meta">
+              <mat-icon inline>description</mat-icon> {{ application.resumeName }}
+              <span class="dot">·</span>
+              déposée {{ application.submittedAtUtc | timeAgo }}
+            </p>
+
+            @if (application.coverLetter) {
+              <p class="application__letter">« {{ application.coverLetter }} »</p>
+            }
+          </div>
+
+          <div class="application__actions">
+            <app-status-chip [applicationStatus]="application.status" />
+
+            @if (canWithdraw(application.status)) {
+              <button
+                matButton
+                class="danger-text"
+                matTooltip="Retirer cette candidature"
+                (click)="withdraw(application)"
+              >
+                <mat-icon>undo</mat-icon>
+                Retirer
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <app-empty-state
+      icon="work_off"
+      title="Aucune candidature dans cette catégorie"
+      message="Parcourez les offres disponibles et postulez en quelques clics."
+    >
+      <a matButton="filled" class="mt-2" routerLink="/emplois">Voir les offres</a>
+    </app-empty-state>
+  }
+</div>

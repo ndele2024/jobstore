@@ -1,0 +1,171 @@
+.loading-block {
+  display: grid;
+  place-items: center;
+  min-height: 30vh;
+}
+
+.completion {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.completion__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-body {
+  padding: 1.5rem 0.25rem 0.5rem;
+}
+
+// --- Bloc de lecture automatique du CV --------------------------------------
+
+.parsed {
+  padding: 1.15rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border-color: var(--jb-primary);
+  background: var(--jb-primary-soft);
+}
+
+.parsed__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.parsed__head mat-icon {
+  color: var(--jb-primary);
+}
+
+.parsed__head p {
+  margin: 0.1rem 0 0;
+}
+
+.parsed__list {
+  margin: 0 0 0.9rem;
+  padding-left: 1.75rem;
+  font-size: 0.88rem;
+  color: var(--jb-text);
+}
+
+// --- Zone de televersement ---------------------------------------------------
+
+.upload-zone {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 2px dashed var(--jb-border);
+  border-radius: var(--jb-radius-md);
+  background: var(--jb-surface);
+}
+
+.upload-zone > mat-icon {
+  font-size: 2.4rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  color: var(--jb-primary);
+}
+
+.upload-zone strong {
+  display: block;
+}
+
+.upload-zone p {
+  margin: 0.15rem 0 0;
+  max-width: 46ch;
+}
+
+.upload-zone button {
+  margin-left: auto;
+}
+
+// --- Listes d'elements du profil --------------------------------------------
+
+.item-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 1.05rem 1.15rem;
+  background: var(--jb-surface);
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius-md);
+}
+
+.item__icon {
+  color: var(--jb-primary);
+  margin-top: 0.15rem;
+}
+
+.item__meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--jb-muted);
+}
+
+.item__tasks {
+  margin: 0.6rem 0 0;
+  padding-left: 1.15rem;
+  font-size: 0.86rem;
+  color: var(--jb-muted);
+  line-height: 1.6;
+}
+
+.item__actions {
+  display: flex;
+  gap: 0.1rem;
+}
+
+.badge-default,
+.badge-success,
+.badge-info {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.badge-default {
+  background: var(--jb-primary-soft);
+  color: var(--jb-primary);
+}
+
+.badge-success {
+  background: var(--jb-success-soft);
+  color: var(--jb-success);
+}
+
+.badge-info {
+  background: var(--jb-warn-soft);
+  color: var(--jb-warn);
+}
+
+@media (max-width: 767px) {
+  .upload-zone {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .upload-zone button {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .item__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}

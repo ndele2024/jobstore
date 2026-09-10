@@ -1,0 +1,133 @@
+<h2 mat-dialog-title>{{ isEdit() ? 'Modifier la formation' : 'Ajouter une formation' }}</h2>
+
+<mat-dialog-content class="dialog-form">
+  <form class="form-grid" [formGroup]="form" novalidate>
+    <mat-form-field class="form-grid--full">
+      <mat-label>École / université</mat-label>
+      <input matInput formControlName="schoolName" required />
+      @if (form.controls.schoolName.touched && form.controls.schoolName.invalid) {
+        <mat-error>{{ errorFor('schoolName', "Le nom de l'établissement") }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Ville</mat-label>
+      <input matInput formControlName="city" [matAutocomplete]="cityAuto" required />
+      <mat-autocomplete #cityAuto="matAutocomplete">
+        @for (city of reference().cities; track city) {
+          <mat-option [value]="city">{{ city }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (form.controls.city.touched && form.controls.city.invalid) {
+        <mat-error>{{ errorFor('city', 'La ville') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Pays</mat-label>
+      <input matInput formControlName="country" [matAutocomplete]="countryAuto" required />
+      <mat-autocomplete #countryAuto="matAutocomplete">
+        @for (country of reference().countries; track country) {
+          <mat-option [value]="country">{{ country }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (form.controls.country.touched && form.controls.country.invalid) {
+        <mat-error>{{ errorFor('country', 'Le pays') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Diplôme</mat-label>
+      <input matInput formControlName="diplomaName" [matAutocomplete]="diplomaAuto" required />
+      <mat-autocomplete #diplomaAuto="matAutocomplete">
+        @for (diploma of reference().diplomas; track diploma) {
+          <mat-option [value]="diploma">{{ diploma }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (form.controls.diplomaName.touched && form.controls.diplomaName.invalid) {
+        <mat-error>{{ errorFor('diplomaName', 'Le diplôme') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Domaine d'étude</mat-label>
+      <input matInput formControlName="fieldOfStudy" required />
+      @if (form.controls.fieldOfStudy.touched && form.controls.fieldOfStudy.invalid) {
+        <mat-error>{{ errorFor('fieldOfStudy', "Le domaine d'étude") }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Date de début</mat-label>
+      <input matInput [matDatepicker]="startPicker" formControlName="startDate" required />
+      <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+      <mat-datepicker #startPicker />
+      @if (form.controls.startDate.touched && form.controls.startDate.invalid) {
+        <mat-error>{{ errorFor('startDate', 'La date de début') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Date de fin</mat-label>
+      <input
+        matInput
+        [matDatepicker]="endPicker"
+        formControlName="endDate"
+        [required]="!form.controls.isCurrent.value"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+      <mat-datepicker #endPicker />
+      @if (form.controls.endDate.touched && form.controls.endDate.invalid) {
+        <mat-error>{{ errorFor('endDate', 'La date de fin') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="form-grid--full">
+      <mat-checkbox formControlName="isCurrent">Études en cours (pas de date de fin)</mat-checkbox>
+    </div>
+
+    <div class="form-grid--full">
+      <mat-checkbox formControlName="diplomaObtained">Diplôme obtenu</mat-checkbox>
+    </div>
+
+    @if (!form.controls.diplomaObtained.value) {
+      <mat-form-field>
+        <mat-label>Date d'obtention prévue</mat-label>
+        <input matInput [matDatepicker]="expectedPicker" formControlName="expectedGraduationDate" required />
+        <mat-datepicker-toggle matIconSuffix [for]="expectedPicker" />
+        <mat-datepicker #expectedPicker />
+        @if (
+          form.controls.expectedGraduationDate.touched && form.controls.expectedGraduationDate.invalid
+        ) {
+          <mat-error>{{ errorFor('expectedGraduationDate', "La date d'obtention prévue") }}</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    <mat-form-field>
+      <mat-label>Crédits accumulés</mat-label>
+      <input matInput type="number" formControlName="accumulatedCredits" min="0" max="300" />
+      @if (form.controls.accumulatedCredits.invalid) {
+        <mat-error>{{ errorFor('accumulatedCredits', 'Le nombre de crédits') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Moyenne cumulative</mat-label>
+      <input matInput type="number" formControlName="gpa" min="0" max="100" step="0.01" />
+      <mat-hint>Sur 4,3 ou en pourcentage selon votre établissement.</mat-hint>
+    </mat-form-field>
+
+    @if (form.hasError('dateRange')) {
+      <p class="dialog-error form-grid--full">
+        <mat-icon inline>error</mat-icon>
+        La date de fin doit être postérieure à la date de début.
+      </p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" (click)="cancel()">Annuler</button>
+  <button matButton="filled" type="button" (click)="submit()">Enregistrer</button>
+</mat-dialog-actions>

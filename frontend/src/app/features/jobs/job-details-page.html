@@ -1,0 +1,155 @@
+@if (loading()) {
+  <div class="page loading-block"><mat-spinner diameter="42" /></div>
+} @else if (notFound()) {
+  <div class="page">
+    <h1 class="page-title">Offre introuvable</h1>
+    <p class="page-subtitle">Cette offre n'existe plus ou n'est plus publiée.</p>
+    <a matButton="filled" routerLink="/emplois">Retour aux offres</a>
+  </div>
+} @else if (job(); as job) {
+  <div class="page detail">
+    <a class="detail__back" routerLink="/emplois">
+      <mat-icon inline>arrow_back</mat-icon> Retour aux offres
+    </a>
+
+    <div class="detail__layout">
+      <!-- Colonne principale -->
+      <div class="detail__main">
+        <header class="surface surface--padded">
+          <div class="detail__header">
+            <div>
+              <h1 class="detail__title">{{ job.title }}</h1>
+              <p class="detail__employer">
+                <mat-icon inline>business</mat-icon> {{ job.employerName }}
+                <span class="dot">·</span>
+                <mat-icon inline>place</mat-icon> {{ job.city }}, {{ job.country }}
+              </p>
+            </div>
+
+            @if (job.matchPercentage !== null) {
+              <app-match-gauge
+                size="large"
+                [percentage]="job.matchPercentage"
+                [matchedSkills]="job.matchedSkills"
+                [missingSkills]="job.missingSkills"
+              />
+            }
+          </div>
+
+          <div class="detail__badges">
+            <mat-chip-set>
+              <mat-chip disabled>{{ job.domain }}</mat-chip>
+              <mat-chip disabled>{{ job.sector }}</mat-chip>
+              <mat-chip disabled>{{ job.contractType | contractType }}</mat-chip>
+              <mat-chip disabled>{{ job.workMode | workMode }}</mat-chip>
+              @if (job.isExternal) {
+                <mat-chip disabled class="chip-external">Offre partenaire</mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+        </header>
+
+        <section class="surface surface--padded mt-2">
+          <h2 class="section-title"><mat-icon>description</mat-icon> Description du poste</h2>
+          <p class="detail__description">{{ job.description }}</p>
+
+          @if (job.responsibilities.length) {
+            <h3 class="detail__subtitle">Responsabilités</h3>
+            <ul class="detail__list">
+              @for (item of job.responsibilities; track item) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          }
+
+          @if (job.requiredSkills.length) {
+            <h3 class="detail__subtitle">Compétences recherchées</h3>
+            <mat-chip-set>
+              @for (skill of job.requiredSkills; track skill) {
+                <mat-chip
+                  disabled
+                  [class.skill--matched]="job.matchedSkills.includes(skill)"
+                  [class.skill--missing]="job.missingSkills.includes(skill)"
+                >
+                  @if (job.matchedSkills.includes(skill)) {
+                    <mat-icon matChipAvatar>check</mat-icon>
+                  }
+                  {{ skill }}
+                </mat-chip>
+              }
+            </mat-chip-set>
+
+            @if (job.matchPercentage !== null && job.missingSkills.length) {
+              <p class="muted text-small mt-1">
+                Les compétences grisées ne figurent pas encore dans votre profil. Ajoutez-les
+                depuis « Mon profil » si vous les maîtrisez.
+              </p>
+            }
+          }
+        </section>
+      </div>
+
+      <!-- Colonne laterale : action et informations cles -->
+      <aside class="detail__aside">
+        <div class="surface surface--padded detail__apply">
+          <p class="detail__salary">{{ job.salaryMin | salaryRange: job.salaryMax }}</p>
+
+          <dl class="detail__facts">
+            <div>
+              <dt>Entrée en poste</dt>
+              <dd>{{ job.startDate | date: 'longDate' }}</dd>
+            </div>
+            <div>
+              <dt>Fin d'affichage</dt>
+              <dd>{{ job.displayUntil | date: 'longDate' }}</dd>
+            </div>
+            <div>
+              <dt>Consultations</dt>
+              <dd>{{ job.viewCount }}</dd>
+            </div>
+            <div>
+              <dt>Candidatures</dt>
+              <dd>{{ job.applicationCount }}</dd>
+            </div>
+          </dl>
+
+          <mat-divider />
+
+          @if (job.isExternal) {
+            <p class="detail__note">
+              Cette offre provient d'un partenaire. La candidature se fait sur son site.
+            </p>
+            <a matButton="filled" class="full-width" [href]="job.externalApplyUrl" target="_blank" rel="noopener">
+              <mat-icon>open_in_new</mat-icon>
+              Postuler sur le site partenaire
+            </a>
+          } @else if (job.hasApplied) {
+            <p class="detail__applied">
+              <mat-icon inline>check_circle</mat-icon>
+              Vous avez déjà postulé à cette offre.
+            </p>
+            <a matButton="outlined" class="full-width" routerLink="/candidat/candidatures">
+              Voir mes candidatures
+            </a>
+          } @else if (expired()) {
+            <p class="detail__note">L'affichage de cette offre est terminé.</p>
+          } @else if (isAuthenticated() && !isEmployee()) {
+            <p class="detail__note">
+              Seuls les comptes candidat peuvent postuler à une offre.
+            </p>
+          } @else {
+            <button matButton="filled" class="full-width detail__cta" (click)="apply()">
+              <mat-icon>send</mat-icon>
+              Postuler à cette offre
+            </button>
+            @if (!isAuthenticated()) {
+              <p class="muted text-small mt-1">
+                Vous serez invité à vous connecter avant de postuler.
+              </p>
+            }
+          }
+        </div>
+      </aside>
+    </div>
+  </div>
+}
