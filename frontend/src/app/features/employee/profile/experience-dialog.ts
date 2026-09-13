@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { Experience, ExperienceRequest } from '../../../core/models/api.models';
+import { Experience, ExperienceRequest, ExtractedExperience } from '../../../core/models/api.models';
 import { ReferenceDataService } from '../../../core/services/reference-data.service';
 import { dateRange, formErrorMessage } from '../../../core/utils/form.validators';
 import { fromDateOnly, toDateOnly } from '../../../core/utils/labels';
@@ -17,6 +17,8 @@ import { ChipListInputComponent } from '../../../shared/components/chip-list-inp
 
 export interface ExperienceDialogData {
   experience: Experience | null;
+  /** Valeurs de depart en creation (par exemple issues de l'analyse d'un CV). */
+  draft?: ExtractedExperience;
 }
 
 /** Ajout ou modification d'une experience professionnelle, avec sa liste de taches. */
@@ -48,7 +50,7 @@ export class ExperienceDialog {
   readonly isEdit = signal(Boolean(this.data.experience));
 
   /** Les taches sont gerees hors du FormGroup, via le composant de puces. */
-  readonly tasks = signal<string[]>(this.data.experience?.tasks ?? []);
+  readonly tasks = signal<string[]>([...(this.data.experience?.tasks ?? this.data.draft?.tasks ?? [])]);
 
   readonly form = this.fb.nonNullable.group(
     {
@@ -64,13 +66,13 @@ export class ExperienceDialog {
   );
 
   constructor() {
-    const experience = this.data.experience;
+    const experience = this.data.experience ?? this.data.draft;
     if (experience) {
       this.form.patchValue({
-        jobTitle: experience.jobTitle,
-        companyName: experience.companyName,
-        city: experience.city,
-        country: experience.country,
+        jobTitle: experience.jobTitle ?? '',
+        companyName: experience.companyName ?? '',
+        city: experience.city ?? '',
+        country: experience.country ?? '',
         isCurrent: experience.isCurrent,
         startDate: fromDateOnly(experience.startDate),
         endDate: fromDateOnly(experience.endDate),

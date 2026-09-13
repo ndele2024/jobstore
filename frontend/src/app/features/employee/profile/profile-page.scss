@@ -18,35 +18,49 @@
   padding: 1.5rem 0.25rem 0.5rem;
 }
 
-// --- Bloc de lecture automatique du CV --------------------------------------
+// --- Analyse du CV par l'IA --------------------------------------------------
 
-.parsed {
-  padding: 1.15rem 1.25rem;
-  margin-bottom: 1.5rem;
+.analysis-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  padding: 0.9rem 1.15rem;
   border-color: var(--jb-primary);
   background: var(--jb-primary-soft);
 }
 
-.parsed__head {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  margin-bottom: 0.6rem;
-}
-
-.parsed__head mat-icon {
-  color: var(--jb-primary);
-}
-
-.parsed__head p {
+.analysis-progress p {
   margin: 0.1rem 0 0;
 }
 
-.parsed__list {
-  margin: 0 0 0.9rem;
-  padding-left: 1.75rem;
-  font-size: 0.88rem;
-  color: var(--jb-text);
+.analysis-offer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-color: var(--jb-primary);
+  background: var(--jb-primary-soft);
+}
+
+.analysis-offer > mat-icon {
+  color: var(--jb-primary);
+  flex: none;
+}
+
+.analysis-offer__text {
+  flex: 1;
+}
+
+.analysis-offer__text p {
+  margin: 0.15rem 0 0;
+}
+
+@media (max-width: 767px) {
+  .analysis-offer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 // --- Zone de televersement ---------------------------------------------------

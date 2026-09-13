@@ -36,6 +36,21 @@ L'application est disponible sur <http://localhost:4200>.
 
 L'URL de l'API est configurée dans [`frontend/src/environments/environment.ts`](frontend/src/environments/environment.ts).
 
+### Analyse des CV par l'IA (clé d'API Claude)
+
+L'analyse et le pré-remplissage du profil à partir d'un CV appellent l'API Claude d'Anthropic.
+Sans clé, tout le reste de l'application fonctionne et l'analyse affiche un message explicite.
+
+La clé ne doit **jamais** être écrite dans `appsettings.json` ni dans aucun fichier du dépôt.
+En développement, elle est stockée hors du dépôt avec les *user secrets* .NET :
+
+```bash
+dotnet user-secrets set "Anthropic:ApiKey" "<votre-cle>" --project backend/JobStore.Api
+```
+
+En production, utiliser la variable d'environnement `Anthropic__ApiKey` (ou `ANTHROPIC_API_KEY`).
+Le modèle, l'effort et la limite de jetons se règlent dans la section `Anthropic` de `appsettings.json`.
+
 ---
 
 ## 2. Comptes de démonstration
@@ -61,7 +76,9 @@ Les données sont **en mémoire** : chaque redémarrage de l'API remet le jeu de
 - Création de compte avec vérification du courriel par code à 6 chiffres
 - Connexion en deux étapes (mot de passe puis code)
 - Profil complet : informations personnelles, études, expériences, compétences, langues, certifications
-- Téléversement de CV (PDF, DOC, DOCX, TXT) avec **lecture automatique** et pré-remplissage du profil
+- Téléversement de CV (PDF, DOC, DOCX, TXT) et **analyse par l'IA (API Claude)** : les informations
+  extraites (identité, études, expériences, compétences, langues, certifications) sont proposées
+  dans une fenêtre de revue, puis ajoutées au profil après validation
 - Plusieurs CV, choix du CV par défaut, téléchargement, suppression
 - Recherche d'offres avec filtres (mot-clé, ville, domaine, secteur, salaire, contrat, mode de travail, tri, pagination)
 - Détail d'une offre avec **pourcentage de correspondance expliqué** (compétences acquises / manquantes)
@@ -108,7 +125,7 @@ JobStore/
 ├─ backend/
 │  ├─ JobStore.Domain/          entités et enums, sans dépendance
 │  ├─ JobStore.Application/     DTOs et interfaces des services
-│  ├─ JobStore.Infrastructure/  implémentations : dépôt en mémoire, services métier, JWT, parsing CV
+│  ├─ JobStore.Infrastructure/  implémentations : dépôt en mémoire, services métier, JWT, analyse CV (Claude)
 │  └─ JobStore.Api/             contrôleurs REST, configuration, Swagger
 ├─ frontend/
 │  └─ src/app/

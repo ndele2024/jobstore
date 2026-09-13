@@ -1,0 +1,169 @@
+<h2 mat-dialog-title class="review__title">
+  <mat-icon>auto_awesome</mat-icon>
+  Informations trouvées dans votre CV
+</h2>
+
+<mat-dialog-content class="review">
+  <p class="muted text-small review__intro">
+    Analyse de <strong>{{ data.analysis.resumeFileName }}</strong>. Cochez ce que vous voulez reprendre
+    dans votre profil. Les informations absentes du CV ne sont pas proposées.
+  </p>
+
+  @if (!hasProposals) {
+    <div class="review__empty">
+      <mat-icon>task_alt</mat-icon>
+      <p>Aucune nouvelle information à ajouter : votre profil contient déjà tout ce que ce CV indique.</p>
+    </div>
+  }
+
+  <!-- Informations personnelles -->
+  @if (personalRows.length) {
+    <section class="review__section">
+      <h3>Informations personnelles</h3>
+      @for (row of personalRows; track row.key) {
+        <div class="review__row">
+          <mat-checkbox [checked]="row.selected()" (change)="row.selected.set($event.checked)">
+            <span class="review__label">{{ row.label }}</span>
+          </mat-checkbox>
+          <div class="review__values">
+            <span class="review__new">{{ row.extracted }}</span>
+            @if (row.current) {
+              <span class="review__current">remplace : {{ row.current }}</span>
+            }
+          </div>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Competences -->
+  @if (skills.length) {
+    <section class="review__section">
+      <div class="review__section-head">
+        <h3>Compétences ({{ skills.length }} nouvelles)</h3>
+        <span>
+          <button matButton type="button" (click)="setAllSkills(true)">Tout cocher</button>
+          <button matButton type="button" (click)="setAllSkills(false)">Tout décocher</button>
+        </span>
+      </div>
+      <div class="review__skills">
+        @for (skill of skills; track skill.value) {
+          <mat-checkbox [checked]="skill.selected()" (change)="skill.selected.set($event.checked)">
+            {{ skill.value }}
+          </mat-checkbox>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Experiences -->
+  @if (experiences.length) {
+    <section class="review__section">
+      <h3>Expériences</h3>
+      @for (item of experiences; track $index) {
+        <div class="review__row">
+          <mat-checkbox [checked]="item.selected()" (change)="item.selected.set($event.checked)">
+            <span class="review__label">{{ item.value.jobTitle || 'Poste sans intitulé' }}</span>
+          </mat-checkbox>
+          <div class="review__values">
+            <span>
+              {{ item.value.companyName || 'Entreprise non précisée' }}
+              @if (item.value.city) {
+                · {{ item.value.city }}
+              }
+              · {{ item.value.startDate || '?' }} — {{ item.value.isCurrent ? 'en cours' : item.value.endDate || '?' }}
+            </span>
+            @if (item.value.tasks.length) {
+              <span class="muted">{{ item.value.tasks.length }} tâche(s)</span>
+            }
+            <ng-container *ngTemplateOutlet="badges; context: { $implicit: item }" />
+          </div>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Etudes -->
+  @if (educations.length) {
+    <section class="review__section">
+      <h3>Études</h3>
+      @for (item of educations; track $index) {
+        <div class="review__row">
+          <mat-checkbox [checked]="item.selected()" (change)="item.selected.set($event.checked)">
+            <span class="review__label">
+              {{ item.value.diplomaName || 'Diplôme non précisé' }}
+              @if (item.value.fieldOfStudy) {
+                — {{ item.value.fieldOfStudy }}
+              }
+            </span>
+          </mat-checkbox>
+          <div class="review__values">
+            <span>
+              {{ item.value.schoolName || 'Établissement non précisé' }}
+              · {{ item.value.startDate || '?' }} — {{ item.value.isCurrent ? 'en cours' : item.value.endDate || '?' }}
+            </span>
+            <ng-container *ngTemplateOutlet="badges; context: { $implicit: item }" />
+          </div>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Langues -->
+  @if (languages.length) {
+    <section class="review__section">
+      <h3>Langues</h3>
+      @for (item of languages; track $index) {
+        <div class="review__row">
+          <mat-checkbox [checked]="item.selected()" (change)="item.selected.set($event.checked)">
+            <span class="review__label">{{ item.value.name }}</span>
+          </mat-checkbox>
+          <div class="review__values">
+            <span>{{ item.value.level ? (item.value.level | languageLevel) : 'Niveau non précisé' }}</span>
+            <ng-container *ngTemplateOutlet="badges; context: { $implicit: item }" />
+          </div>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Certifications -->
+  @if (certifications.length) {
+    <section class="review__section">
+      <h3>Certifications</h3>
+      @for (item of certifications; track $index) {
+        <div class="review__row">
+          <mat-checkbox [checked]="item.selected()" (change)="item.selected.set($event.checked)">
+            <span class="review__label">{{ item.value.name }}</span>
+          </mat-checkbox>
+          <div class="review__values">
+            <span>{{ item.value.issuer || 'Organisme non précisé' }}</span>
+            <ng-container *ngTemplateOutlet="badges; context: { $implicit: item }" />
+          </div>
+        </div>
+      }
+    </section>
+  }
+
+  <ng-template #badges let-item>
+    @if (item.duplicate) {
+      <span class="badge badge--muted">déjà dans votre profil</span>
+    }
+    @if (!item.complete) {
+      <span class="badge badge--warn">à compléter</span>
+    }
+  </ng-template>
+</mat-dialog-content>
+
+<mat-dialog-actions class="review__actions">
+  @if (incompleteSelectedCount()) {
+    <span class="muted text-small review__hint">
+      {{ incompleteSelectedCount() }} élément(s) incomplet(s) s'ouvriront dans leur formulaire.
+    </span>
+  }
+  <span class="spacer"></span>
+  <button matButton type="button" (click)="cancel()">Annuler</button>
+  <button matButton="filled" type="button" [disabled]="selectedCount() === 0" (click)="apply()">
+    Ajouter à mon profil ({{ selectedCount() }})
+  </button>
+</mat-dialog-actions>

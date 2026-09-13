@@ -122,19 +122,36 @@ Après succès, redirection vers le tableau de bord du rôle (ou vers la page de
 | Onglet | Contenu |
 | --- | --- |
 | **Informations** | Nom, prénom, téléphone, adresse, ville, pays, code postal, titre professionnel, présentation. Le courriel est en lecture seule (modifiable dans « Paramètres du compte »). |
-| **CV** | Zone de téléversement, liste des CV avec taille, badge « CV par défaut », actions : définir par défaut, télécharger, supprimer. |
+| **CV** | Zone de téléversement, liste des CV avec taille, badge « CV par défaut », actions : analyser et pré-remplir (✨), définir par défaut, télécharger, supprimer. |
 | **Études** | Liste des formations, ajout / modification / suppression par boîte de dialogue. |
 | **Expériences** | Liste des expériences avec leurs tâches. |
 | **Compétences et langues** | Compétences en puces avec autocomplétion ; langues avec niveau. |
 | **Certifications** | Nom, organisme, dates d'obtention et d'expiration, numéro. |
 
-**Lecture automatique du CV** : après un téléversement, un encart bleu affiche ce qui a été
-détecté (nom, courriel, téléphone, ville, compétences). Le bouton « Pré-remplir le formulaire »
-recopie ces valeurs — **sans jamais écraser un champ déjà rempli** — et fusionne les compétences.
-L'utilisateur vérifie puis enregistre. Le remplissage manuel reste toujours possible.
+**Analyse du CV par l'IA et pré-remplissage** (`resume-analysis-dialog.*`)
+
+1. Après un téléversement, un encart propose « Analyser et pré-remplir » (ou « Plus tard »).
+   Tout CV déjà enregistré peut aussi être analysé avec le bouton ✨.
+2. Un bandeau indique l'analyse en cours (10 à 60 secondes). Le CV est lu par l'API Claude.
+3. Une fenêtre de revue présente ce qui a été trouvé, section par section. Les informations
+   absentes du CV ne sont pas proposées. Le candidat coche ce qu'il reprend :
+   - champs personnels différents du profil — cochés seulement si le champ du profil est vide,
+     l'ancienne valeur étant affichée barrée ;
+   - nouvelles compétences uniquement, avec « Tout cocher / Tout décocher » ;
+   - études, expériences, langues, certifications — décochées si déjà présentes
+     (« déjà dans votre profil »), marquées « à compléter » s'il manque un champ obligatoire.
+4. « Ajouter à mon profil » enregistre les éléments complets, puis ouvre **un par un** les
+   formulaires des éléments incomplets, pré-remplis, champs manquants vides. Annuler un formulaire
+   passe simplement à l'élément suivant.
+5. Un message récapitule le nombre d'éléments ajoutés. Si un champ personnel obligatoire manque
+   à la fois dans le CV et dans le profil, les valeurs sont recopiées dans l'onglet
+   « Informations » pour que le candidat complète et enregistre.
+
+Sans clé d'API configurée côté serveur, l'analyse affiche un message explicite ; le remplissage
+manuel reste toujours possible.
 
 Boîtes de dialogue : `education-dialog`, `experience-dialog`, `language-dialog`,
-`certification-dialog`.
+`certification-dialog` (toutes acceptent des valeurs de départ `draft`) et `resume-analysis-dialog`.
 
 Règles de saisie appliquées côté formulaire **et** côté API :
 - « Études en cours » ⇒ pas de date de fin ; sinon la date de fin est obligatoire.

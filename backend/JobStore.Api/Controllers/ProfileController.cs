@@ -82,10 +82,7 @@ public class ProfileController(IProfileService profileService) : ApiControllerBa
     [HttpGet("resumes")]
     public IActionResult GetResumes() => FromResult(profileService.GetResumes(RequiredUserId));
 
-    /// <summary>
-    /// Televerse un CV (PDF, DOC, DOCX, TXT, 5 Mo maximum) et renvoie
-    /// les donnees extraites automatiquement pour pre-remplir le formulaire de profil.
-    /// </summary>
+    /// <summary>Televerse un CV (PDF, DOC, DOCX, TXT, 5 Mo maximum).</summary>
     [HttpPost("resumes")]
     [RequestSizeLimit(6 * 1024 * 1024)]
     public async Task<IActionResult> UploadResume(IFormFile file, CancellationToken cancellationToken)
@@ -104,6 +101,15 @@ public class ProfileController(IProfileService profileService) : ApiControllerBa
             string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
             buffer.ToArray()));
     }
+
+    /// <summary>
+    /// Analyse un CV avec l'API Claude et renvoie les informations extraites
+    /// (identite, etudes, experiences, competences, langues, certifications).
+    /// Rien n'est enregistre: le frontend propose la selection a l'utilisateur.
+    /// </summary>
+    [HttpPost("resumes/{id:guid}/analyze")]
+    public async Task<IActionResult> AnalyzeResume(Guid id, CancellationToken cancellationToken) =>
+        FromResult(await profileService.AnalyzeResumeAsync(RequiredUserId, id, cancellationToken));
 
     [HttpPut("resumes/{id:guid}/default")]
     public IActionResult SetDefaultResume(Guid id) =>

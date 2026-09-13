@@ -133,6 +133,7 @@ Refus : `409` si déjà postulé, si l'offre est expirée, ou si l'offre est ext
 | POST / PUT / DELETE | `/certifications`, `/certifications/{id}` | Certifications |
 | GET | `/resumes` | Liste des CV |
 | POST | `/resumes` | Téléverse un CV (`multipart/form-data`, champ `file`) |
+| POST | `/resumes/{id}/analyze` | Analyse le CV avec l'API Claude (lecture seule) |
 | PUT | `/resumes/{id}/default` | Définit le CV par défaut |
 | DELETE | `/resumes/{id}` | Supprime un CV |
 | GET | `/resumes/{id}/download` | Télécharge le fichier |
@@ -145,21 +146,45 @@ Refus : `409` si déjà postulé, si l'offre est expirée, ou si l'offre est ext
 - CV : formats `.pdf`, `.doc`, `.docx`, `.txt`, 5 Mo maximum (`415` / `413` sinon).
   Un CV rattaché à une candidature ne peut pas être supprimé (`409`).
 
-**`POST /api/profile/resumes`** renvoie le document **et** la lecture automatique :
+**`POST /api/profile/resumes`** renvoie uniquement le document enregistré
+(`{ id, fileName, contentType, sizeInBytes, isDefault, uploadedAtUtc }`).
+
+**`POST /api/profile/resumes/{id}/analyze`** envoie le CV à l'API Claude et renvoie les
+informations extraites. **Rien n'est enregistré** : le frontend les soumet ensuite au candidat.
+Durée typique : 10 à 60 secondes.
 
 ```json
 {
-  "resume": { "id": "...", "fileName": "cv.pdf", "sizeInBytes": 45123, "isDefault": false },
-  "parsed": {
-    "firstName": "Alicia", "lastName": "Kouame",
-    "email": "alicia@example.com", "phone": "+1 438 555-1000",
-    "city": "Laval", "country": "Canada",
-    "skills": ["Angular", "ASP.NET"], "languages": ["Francais", "Anglais"],
-    "rawTextPreview": "…", "supported": true,
-    "message": "Lecture automatique terminee. Verifiez et corrigez les champs proposes."
-  }
+  "resumeId": "…", "resumeFileName": "cv.pdf",
+  "personalInfo": {
+    "firstName": "Alicia", "lastName": "Kouame", "email": "alicia@example.com",
+    "phone": "+1 438 555-1000", "city": "Laval", "country": "Canada",
+    "headline": "Développeuse full-stack"
+  },
+  "skills": ["Angular", "ASP.NET", "Docker"],
+  "educations": [
+    { "schoolName": "Université de Montréal", "city": "Montréal", "country": "Canada",
+      "diplomaName": "Baccalauréat", "fieldOfStudy": "Informatique",
+      "startDate": "2019-09-01", "endDate": "2022-05-01", "isCurrent": false,
+      "diplomaObtained": true, "accumulatedCredits": 90, "gpa": 3.7 }
+  ],
+  "experiences": [
+    { "jobTitle": "Développeuse full-stack", "companyName": "Studio Boréal", "city": "Montréal",
+      "country": "Canada", "startDate": "2024-06-01", "isCurrent": true,
+      "tasks": ["Développement d'API REST"] }
+  ],
+  "languages": [ { "name": "Français", "level": 5 }, { "name": "Espagnol" } ],
+  "certifications": [ { "name": "Certified Kubernetes Administrator", "issuer": "CNCF" } ]
 }
 ```
+
+Une information absente du CV vaut `null` ; comme partout dans l'API, les champs `null` sont
+**omis** du JSON (`"level"` absent pour l'espagnol ci-dessus). `level` suit l'enum `LanguageLevel`.
+
+Erreurs : `503` clé d'API non configurée ou service indisponible · `422` fichier illisible,
+document refusé ou CV trop long · `429` limite de débit Anthropic · `404` CV introuvable ·
+`500` requête refusée par Anthropic pour une raison de configuration (détail dans les journaux) ·
+`502` réponse inexploitable.
 
 ---
 

@@ -211,26 +211,70 @@ export interface Resume {
   uploadedAtUtc: string;
 }
 
-/** Donnees detectees dans un CV, proposees en pre-remplissage du profil. */
-export interface ResumeParsingResult {
+// -- Analyse d'un CV par l'API Claude ---------------------------------------
+// Tous les champs peuvent etre null: une information absente du CV reste vide.
+
+export interface ExtractedPersonalInfo {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
   phone: string | null;
+  addressLine: string | null;
   city: string | null;
   country: string | null;
-  skills: string[];
-  languages: string[];
-  experiences: ExperienceRequest[];
-  educations: EducationRequest[];
-  rawTextPreview: string;
-  supported: boolean;
-  message: string;
+  postalCode: string | null;
+  headline: string | null;
+  summary: string | null;
 }
 
-export interface ResumeUploadResponse {
-  resume: Resume;
-  parsed: ResumeParsingResult;
+export interface ExtractedEducation {
+  schoolName: string | null;
+  city: string | null;
+  country: string | null;
+  diplomaName: string | null;
+  fieldOfStudy: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  isCurrent: boolean;
+  diplomaObtained: boolean | null;
+  expectedGraduationDate: string | null;
+  accumulatedCredits: number | null;
+  gpa: number | null;
+}
+
+export interface ExtractedExperience {
+  jobTitle: string | null;
+  companyName: string | null;
+  city: string | null;
+  country: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  isCurrent: boolean;
+  tasks: string[];
+}
+
+export interface ExtractedLanguage {
+  name: string;
+  level: LanguageLevel | null;
+}
+
+export interface ExtractedCertification {
+  name: string;
+  issuer: string | null;
+  issueDate: string | null;
+  expirationDate: string | null;
+  credentialId: string | null;
+}
+
+export interface ResumeAnalysis {
+  resumeId: string;
+  resumeFileName: string;
+  personalInfo: ExtractedPersonalInfo;
+  skills: string[];
+  educations: ExtractedEducation[];
+  experiences: ExtractedExperience[];
+  languages: ExtractedLanguage[];
+  certifications: ExtractedCertification[];
 }
 
 export interface EmployeeProfile {

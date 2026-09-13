@@ -142,24 +142,69 @@ public record ResumeDto(
     bool IsDefault,
     DateTime UploadedAtUtc);
 
-/// <summary>Donnees extraites automatiquement d'un CV, proposees en pre-remplissage.</summary>
-public record ResumeParsingResultDto(
+// ---------------------------------------------------------------------------
+// Analyse d'un CV par l'API Claude
+//
+// Tous les champs sont nullables: une information absente du CV reste vide.
+// Ces DTO sont une PROPOSITION de pre-remplissage; rien n'est enregistre tant
+// que l'utilisateur n'a pas valide la selection cote interface.
+// ---------------------------------------------------------------------------
+
+public record ExtractedPersonalInfoDto(
     string? FirstName,
     string? LastName,
     string? Email,
     string? Phone,
+    string? AddressLine,
     string? City,
     string? Country,
-    IReadOnlyCollection<string> Skills,
-    IReadOnlyCollection<string> Languages,
-    IReadOnlyCollection<ExperienceRequest> Experiences,
-    IReadOnlyCollection<EducationRequest> Educations,
-    string RawTextPreview,
-    bool Supported,
-    string Message);
+    string? PostalCode,
+    string? Headline,
+    string? Summary);
 
-/// <summary>Reponse du televersement d'un CV: le document plus la proposition de pre-remplissage.</summary>
-public record ResumeUploadResponse(ResumeDto Resume, ResumeParsingResultDto Parsed);
+public record ExtractedEducationDto(
+    string? SchoolName,
+    string? City,
+    string? Country,
+    string? DiplomaName,
+    string? FieldOfStudy,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    bool IsCurrent,
+    bool? DiplomaObtained,
+    DateOnly? ExpectedGraduationDate,
+    int? AccumulatedCredits,
+    decimal? Gpa);
+
+public record ExtractedExperienceDto(
+    string? JobTitle,
+    string? CompanyName,
+    string? City,
+    string? Country,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    bool IsCurrent,
+    IReadOnlyCollection<string> Tasks);
+
+public record ExtractedLanguageDto(string Name, LanguageLevel? Level);
+
+public record ExtractedCertificationDto(
+    string Name,
+    string? Issuer,
+    DateOnly? IssueDate,
+    DateOnly? ExpirationDate,
+    string? CredentialId);
+
+/// <summary>Resultat complet de l'analyse d'un CV.</summary>
+public record ResumeAnalysisDto(
+    Guid ResumeId,
+    string ResumeFileName,
+    ExtractedPersonalInfoDto PersonalInfo,
+    IReadOnlyCollection<string> Skills,
+    IReadOnlyCollection<ExtractedEducationDto> Educations,
+    IReadOnlyCollection<ExtractedExperienceDto> Experiences,
+    IReadOnlyCollection<ExtractedLanguageDto> Languages,
+    IReadOnlyCollection<ExtractedCertificationDto> Certifications);
 
 // ---------------------------------------------------------------------------
 // Profil complet

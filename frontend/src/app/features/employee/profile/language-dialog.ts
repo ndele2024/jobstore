@@ -7,12 +7,19 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
-import { LanguageLevel, LanguageRequest, LanguageSkill } from '../../../core/models/api.models';
+import {
+  ExtractedLanguage,
+  LanguageLevel,
+  LanguageRequest,
+  LanguageSkill,
+} from '../../../core/models/api.models';
 import { ReferenceDataService } from '../../../core/services/reference-data.service';
 import { formErrorMessage } from '../../../core/utils/form.validators';
 
 export interface LanguageDialogData {
   language: LanguageSkill | null;
+  /** Valeurs de depart en creation (par exemple issues de l'analyse d'un CV). */
+  draft?: ExtractedLanguage;
 }
 
 /** Ajout ou modification d'une langue et de son niveau. */
@@ -42,12 +49,13 @@ export class LanguageDialog {
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
-    level: [LanguageLevel.Intermediate as LanguageLevel, [Validators.required]],
+    level: [LanguageLevel.Intermediate as LanguageLevel | null, [Validators.required]],
   });
 
   constructor() {
-    const language = this.data.language;
+    const language = this.data.language ?? this.data.draft;
     if (language) {
+      // Un niveau absent du CV reste vide: le candidat doit le choisir.
       this.form.patchValue({ name: language.name, level: language.level });
     }
   }
@@ -62,7 +70,8 @@ export class LanguageDialog {
       return;
     }
 
-    this.dialogRef.close(this.form.getRawValue());
+    const { name, level } = this.form.getRawValue();
+    this.dialogRef.close({ name, level: level! });
   }
 
   cancel(): void {

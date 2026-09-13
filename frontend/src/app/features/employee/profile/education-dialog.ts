@@ -9,13 +9,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { Education, EducationRequest } from '../../../core/models/api.models';
+import { Education, EducationRequest, ExtractedEducation } from '../../../core/models/api.models';
 import { ReferenceDataService } from '../../../core/services/reference-data.service';
 import { dateRange, formErrorMessage } from '../../../core/utils/form.validators';
 import { fromDateOnly, toDateOnly } from '../../../core/utils/labels';
 
 export interface EducationDialogData {
   education: Education | null;
+  /** Valeurs de depart en creation (par exemple issues de l'analyse d'un CV). */
+  draft?: ExtractedEducation;
 }
 
 /** Ajout ou modification d'une formation. */
@@ -64,16 +66,16 @@ export class EducationDialog {
   );
 
   constructor() {
-    const education = this.data.education;
+    const education = this.data.education ?? this.data.draft;
     if (education) {
       this.form.patchValue({
-        schoolName: education.schoolName,
-        city: education.city,
-        country: education.country,
-        diplomaName: education.diplomaName,
-        fieldOfStudy: education.fieldOfStudy,
+        schoolName: education.schoolName ?? '',
+        city: education.city ?? '',
+        country: education.country ?? '',
+        diplomaName: education.diplomaName ?? '',
+        fieldOfStudy: education.fieldOfStudy ?? '',
         isCurrent: education.isCurrent,
-        diplomaObtained: education.diplomaObtained,
+        diplomaObtained: education.diplomaObtained ?? false,
         accumulatedCredits: education.accumulatedCredits,
         gpa: education.gpa,
         startDate: fromDateOnly(education.startDate),

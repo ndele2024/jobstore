@@ -92,10 +92,20 @@ public interface IEmailSender
     void SendVerificationCode(string email, string code, VerificationPurpose purpose);
 }
 
-/// <summary>Extraction de donnees a partir d'un CV televerse.</summary>
-public interface IResumeParser
+/// <summary>
+/// Analyse d'un CV par un modele de langage (implementation: API Claude)
+/// et extraction des informations structurees du profil candidat.
+/// </summary>
+public interface IResumeAnalyzer
 {
-    ResumeParsingResultDto Parse(string fileName, string contentType, byte[] content);
+    /// <summary>Faux si aucune cle d'API n'est configuree: l'analyse est alors indisponible.</summary>
+    bool IsConfigured { get; }
+
+    Task<Result<ResumeAnalysisDto>> AnalyzeAsync(
+        Guid resumeId,
+        string fileName,
+        byte[] content,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>Calcul du pourcentage de correspondance profil / offre.</summary>
@@ -138,7 +148,8 @@ public interface IProfileService
     Result<CertificationDto> UpdateCertification(Guid userId, Guid certificationId, CertificationRequest request);
     Result DeleteCertification(Guid userId, Guid certificationId);
 
-    Result<ResumeUploadResponse> UploadResume(Guid userId, string fileName, string contentType, byte[] content);
+    Result<ResumeDto> UploadResume(Guid userId, string fileName, string contentType, byte[] content);
+    Task<Result<ResumeAnalysisDto>> AnalyzeResumeAsync(Guid userId, Guid resumeId, CancellationToken cancellationToken);
     Result<IReadOnlyCollection<ResumeDto>> GetResumes(Guid userId);
     Result SetDefaultResume(Guid userId, Guid resumeId);
     Result DeleteResume(Guid userId, Guid resumeId);

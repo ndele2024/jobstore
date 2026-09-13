@@ -137,20 +137,72 @@ Le frontend gère déjà l'absence de `devCode` : l'encart d'information dispara
 
 ---
 
-## 7. Améliorer la lecture des CV
+## 7. Analyse des CV par l'API Claude
 
-L'extraction PDF actuelle ne lit que les segments de texte non compressés. Pour une extraction
-complète :
+### 7.1 Configurer ou changer la clé
 
 ```bash
-dotnet add backend/JobStore.Infrastructure package PdfPig
+dotnet user-secrets set "Anthropic:ApiKey" "<nouvelle-cle>" --project backend/JobStore.Api
 ```
 
-puis remplacer la méthode `ExtractFromPdf` de `Services/ResumeParser.cs`. Le contrat
-`IResumeParser` et tout le frontend restent inchangés.
+Redémarrer l'API ensuite. Pour vérifier ce qui est enregistré (hors dépôt) :
 
-Pour enrichir la détection, les listes `KnownSkills` et `KnownLanguages` du même fichier sont le
-premier levier ; l'étape suivante serait un appel à un modèle de langage sur `rawTextPreview`.
+```bash
+dotnet user-secrets list --project backend/JobStore.Api
+```
+
+En production : variable d'environnement `Anthropic__ApiKey`. Une clé exposée (collée dans un
+message, un ticket, un commit) doit être révoquée dans la console Anthropic et remplacée.
+
+### 7.2 Régler le modèle et le coût
+
+Section `Anthropic` de `backend/JobStore.Api/appsettings.json` :
+
+| Clé | Défaut | Effet |
+| --- | --- | --- |
+| `Model` | `claude-opus-5` | Modèle utilisé |
+| `Effort` | `medium` | `low` réduit coût et latence ; `high` si des CV complexes sont mal extraits |
+| `MaxTokens` | `16000` | Plafond de la réponse ; au-delà, l'analyse échoue proprement (`422`) |
+
+Les journaux de l'API indiquent pour chaque analyse la durée et les jetons consommés : c'est la
+base pour estimer le coût réel avant de toucher à ces réglages.
+
+### 7.3 Extraire un nouveau champ
+
+Exemple : ajouter `linkedinUrl` aux informations personnelles.
+
+| # | Fichier | Modification |
+| --- | --- | --- |
+| 1 | `Infrastructure/Services/ResumeExtractionPrompt.cs` | Propriété dans le schéma **et** dans la liste `required` de l'objet (obligatoire pour les sorties structurées) ; consigne si besoin |
+| 2 | `Infrastructure/Services/ClaudeResumeAnalyzer.cs` | Champ dans le record privé `ExtractedPersonal` et dans `Map` |
+| 3 | `Application/DTOs/ProfileDtos.cs` | Champ dans `ExtractedPersonalInfoDto` |
+| 4 | `frontend/.../core/models/api.models.ts` | Champ dans `ExtractedPersonalInfo` |
+| 5 | `frontend/.../profile/resume-analysis.utils.ts` | Entrée dans `PERSONAL_FIELDS` (si le champ existe aussi dans le profil) |
+
+Contraintes du schéma, vérifiées par l'API à chaque appel :
+- tout objet déclare `"additionalProperties": false` et liste tous ses champs dans `required` ;
+- **au plus 16 paramètres à type union** (`anyOf`, « X ou null ») dans tout le schéma — il en
+  reste 14 disponibles. Pour un texte ou une date facultatifs, utiliser `{ "type": "string" }` et
+  demander une chaîne vide dans la consigne, comme les champs existants ; le `Clean` de
+  `ClaudeResumeAnalyzer` la convertit en `null` ;
+- `minimum`, `maxLength` et les schémas récursifs ne sont pas acceptés.
+
+Le serveur simulé du §7.4 ne vérifie **pas** ces contraintes : après toute modification du schéma,
+faire une vraie analyse (quelques centimes) avant de livrer.
+
+### 7.4 Tester sans consommer de crédits
+
+Le SDK respecte la variable `ANTHROPIC_BASE_URL`. Lancer l'API avec
+`ANTHROPIC_BASE_URL=http://127.0.0.1:5099` et une clé factice, et faire répondre à `/v1/messages`
+un petit serveur local qui renvoie un message dont le texte est un JSON conforme au schéma.
+Utile pour tester le parcours et les codes d'erreur, mais le simulateur n'applique pas les
+validations de l'API réelle (limites du schéma, PDF invalide) : c'est ainsi qu'un schéma trop
+complexe est passé inaperçu lors de la première livraison.
+
+### 7.5 Remplacer le fournisseur
+
+Toute l'application dépend de l'interface `IResumeAnalyzer`. Une autre implémentation
+s'enregistre dans `Infrastructure/DependencyInjection.cs` sans toucher au contrôleur ni au frontend.
 
 ---
 
@@ -192,6 +244,9 @@ Changer la formule ne modifie pas les candidatures existantes — c'est voulu, m
 | Une page s'affiche à moitié, sans erreur visible | Exception levée pendant le rendu du gabarit (souvent un pipe) | Ouvrir la console du navigateur : l'erreur y est complète. Cas déjà rencontré : `NG0701` du `DatePipe` faute de locale enregistrée |
 | Un changement d'état n'apparaît pas à l'écran | Valeur stockée dans un champ ordinaire au lieu d'un `signal` | Passer par `signal()` — l'application tourne sans zone.js |
 | Déconnexion inattendue | Jeton expiré (8 h) | Se reconnecter ; augmenter `TokenLifetimeMinutes` ou implémenter un jeton de rafraîchissement |
+| « L'analyse automatique des CV n'est pas configurée » | Clé d'API absente de l'environnement de l'API | `dotnet user-secrets set "Anthropic:ApiKey" ...` puis redémarrer l'API (voir §7.1) |
+| Analyse de CV : « erreur de configuration du serveur » | Requête refusée par Anthropic (souvent le schéma après une modification) | Lire le message `invalid_request_error` dans les journaux de l'API ; voir §7.3 |
+| Analyse de CV en erreur `503` / `429` alors que la clé est définie | Clé révoquée, crédits épuisés ou limite de débit | Consulter les logs de l'API (message de l'exception Anthropic) et la console Anthropic |
 | Les données de démonstration ont disparu | Redémarrage de l'API (stockage en mémoire) | Comportement normal du prototype ; passer à PostgreSQL pour persister |
 | `dotnet run` échoue sur un problème de droits | Dossier `DOTNET_CLI_HOME` | `$env:DOTNET_CLI_HOME=(Resolve-Path .dotnet-home).Path` à la racine du dépôt |
 

@@ -14,7 +14,8 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IEmailSender, LoggingEmailSender>();
-        services.AddSingleton<IResumeParser, ResumeParser>();
+        // Analyse des CV par l'API Claude (singleton: le client HTTP est reutilise).
+        services.AddSingleton<IResumeAnalyzer, ClaudeResumeAnalyzer>();
         services.AddSingleton<IMatchingService, MatchingService>();
 
         // Persistence: singleton car les donnees vivent en memoire pour la duree du processus.

@@ -6,12 +6,18 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { Certification, CertificationRequest } from '../../../core/models/api.models';
+import {
+  Certification,
+  CertificationRequest,
+  ExtractedCertification,
+} from '../../../core/models/api.models';
 import { formErrorMessage } from '../../../core/utils/form.validators';
 import { fromDateOnly, toDateOnly } from '../../../core/utils/labels';
 
 export interface CertificationDialogData {
   certification: Certification | null;
+  /** Valeurs de depart en creation (par exemple issues de l'analyse d'un CV). */
+  draft?: ExtractedCertification;
 }
 
 /** Ajout ou modification d'une certification professionnelle. */
@@ -45,12 +51,12 @@ export class CertificationDialog {
   });
 
   constructor() {
-    const certification = this.data.certification;
+    const certification = this.data.certification ?? this.data.draft;
     if (certification) {
       this.form.patchValue({
         name: certification.name,
-        issuer: certification.issuer,
-        credentialId: certification.credentialId,
+        issuer: certification.issuer ?? '',
+        credentialId: certification.credentialId ?? '',
         issueDate: fromDateOnly(certification.issueDate),
         expirationDate: fromDateOnly(certification.expirationDate),
       });

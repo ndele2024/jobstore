@@ -7,7 +7,7 @@ namespace JobStore.Infrastructure.Services;
 
 /// <summary>Gestion du profil candidat (informations, etudes, experiences, langues, certifications, CV)
 /// et du profil entreprise.</summary>
-public class ProfileService(IJobStoreRepository repository, IResumeParser resumeParser) : IProfileService
+public class ProfileService(IJobStoreRepository repository, IResumeAnalyzer resumeAnalyzer) : IProfileService
 {
     private const long MaxResumeSize = 5 * 1024 * 1024;
 
@@ -183,25 +183,25 @@ public class ProfileService(IJobStoreRepository repository, IResumeParser resume
     // CV
     // -----------------------------------------------------------------------
 
-    public Result<ResumeUploadResponse> UploadResume(Guid userId, string fileName, string contentType, byte[] content) =>
+    /// <summary>Enregistre le CV. L'analyse par l'IA est declenchee separement (<see cref="AnalyzeResumeAsync"/>).</summary>
+    public Result<ResumeDto> UploadResume(Guid userId, string fileName, string contentType, byte[] content) =>
         WithEmployee(userId, user =>
         {
             var extension = Path.GetExtension(fileName).ToLowerInvariant();
 
             if (!AllowedResumeExtensions.Contains(extension))
             {
-                return Result<ResumeUploadResponse>.Fail(
-                    "Format refuse. Formats acceptes: PDF, DOC, DOCX, TXT.", 415);
+                return Result<ResumeDto>.Fail("Format refuse. Formats acceptes: PDF, DOC, DOCX, TXT.", 415);
             }
 
             if (content.Length == 0)
             {
-                return Result<ResumeUploadResponse>.Fail("Le fichier est vide.");
+                return Result<ResumeDto>.Fail("Le fichier est vide.");
             }
 
             if (content.Length > MaxResumeSize)
             {
-                return Result<ResumeUploadResponse>.Fail("Le fichier depasse la taille maximale de 5 Mo.", 413);
+                return Result<ResumeDto>.Fail("Le fichier depasse la taille maximale de 5 Mo.", 413);
             }
 
             var resume = new ResumeDocument
@@ -214,10 +214,40 @@ public class ProfileService(IJobStoreRepository repository, IResumeParser resume
             };
 
             user.Resumes.Add(resume);
-
-            var parsed = resumeParser.Parse(resume.FileName, contentType, content);
-            return Result<ResumeUploadResponse>.Ok(new ResumeUploadResponse(Mapper.ToDto(resume), parsed));
+            return Result<ResumeDto>.Ok(Mapper.ToDto(resume));
         });
+
+    /// <summary>
+    /// Envoie un CV du candidat a l'API Claude et renvoie les informations extraites.
+    /// Le fichier est copie sous verrou, puis l'appel reseau se fait hors verrou
+    /// pour ne pas bloquer les autres requetes pendant l'analyse.
+    /// </summary>
+    public async Task<Result<ResumeAnalysisDto>> AnalyzeResumeAsync(
+        Guid userId,
+        Guid resumeId,
+        CancellationToken cancellationToken)
+    {
+        if (!resumeAnalyzer.IsConfigured)
+        {
+            return Result<ResumeAnalysisDto>.Fail(
+                "L'analyse automatique des CV n'est pas configuree sur le serveur (cle d'API Claude manquante).", 503);
+        }
+
+        var lookup = WithEmployee(userId, user =>
+        {
+            var resume = user.Resumes.FirstOrDefault(r => r.Id == resumeId);
+            return resume is null
+                ? Result<(string FileName, byte[] Content)>.NotFound("CV introuvable.")
+                : Result<(string FileName, byte[] Content)>.Ok((resume.FileName, resume.Content.ToArray()));
+        });
+
+        if (!lookup.Success)
+        {
+            return Result<ResumeAnalysisDto>.Fail(lookup.Error, lookup.StatusCode);
+        }
+
+        return await resumeAnalyzer.AnalyzeAsync(resumeId, lookup.Value.FileName, lookup.Value.Content, cancellationToken);
+    }
 
     public Result<IReadOnlyCollection<ResumeDto>> GetResumes(Guid userId) =>
         WithEmployee(userId, user => Result<IReadOnlyCollection<ResumeDto>>.Ok(

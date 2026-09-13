@@ -96,10 +96,10 @@ export class ApplyDialogComponent {
 
     this.uploading.set(true);
     this.profileService.uploadResume(file).subscribe({
-      next: (response) => {
+      next: (resume) => {
         this.uploading.set(false);
-        this.resumes.update((items) => [response.resume, ...items]);
-        this.form.patchValue({ resumeId: response.resume.id });
+        this.resumes.update((items) => [resume, ...items]);
+        this.form.patchValue({ resumeId: resume.id });
         this.notifications.success('CV ajoute a votre profil.');
       },
       error: () => this.uploading.set(false),

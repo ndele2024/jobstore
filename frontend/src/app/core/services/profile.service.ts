@@ -14,7 +14,7 @@ import {
   LanguageRequest,
   LanguageSkill,
   Resume,
-  ResumeUploadResponse,
+  ResumeAnalysis,
   UpdatePersonalInfoRequest,
 } from '../models/api.models';
 
@@ -114,11 +114,19 @@ export class ProfileService {
     return this.http.get<Resume[]>(`${this.baseUrl}/resumes`);
   }
 
-  /** Televerse un CV et recupere les donnees detectees pour pre-remplir le profil. */
-  uploadResume(file: File): Observable<ResumeUploadResponse> {
+  uploadResume(file: File): Observable<Resume> {
     const formData = new FormData();
     formData.append('file', file, file.name);
-    return this.http.post<ResumeUploadResponse>(`${this.baseUrl}/resumes`, formData);
+    return this.http.post<Resume>(`${this.baseUrl}/resumes`, formData);
+  }
+
+  /**
+   * Fait analyser un CV par l'API Claude (cote serveur).
+   * Rien n'est enregistre: le resultat est une proposition de pre-remplissage.
+   * Compter 10 a 60 secondes selon la longueur du CV.
+   */
+  analyzeResume(resumeId: string): Observable<ResumeAnalysis> {
+    return this.http.post<ResumeAnalysis>(`${this.baseUrl}/resumes/${resumeId}/analyze`, {});
   }
 
   setDefaultResume(id: string): Observable<void> {

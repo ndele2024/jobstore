@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Observable, catchError, concat, defer, forkJoin, map, of, switchMap, toArray } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,9 +20,11 @@ import {
   Certification,
   Education,
   Experience,
+  EmployeeProfile,
   LanguageSkill,
   Resume,
-  ResumeParsingResult,
+  ResumeAnalysis,
+  UpdatePersonalInfoRequest,
 } from '../../../core/models/api.models';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ProfileService } from '../../../core/services/profile.service';
@@ -36,6 +39,22 @@ import { CertificationDialog } from './certification-dialog';
 import { EducationDialog } from './education-dialog';
 import { ExperienceDialog } from './experience-dialog';
 import { LanguageDialog } from './language-dialog';
+import {
+  ResumeAnalysisDialog,
+  ResumeAnalysisDialogData,
+  ResumeAnalysisSelection,
+} from './resume-analysis-dialog';
+import {
+  isCertificationComplete,
+  isEducationComplete,
+  isExperienceComplete,
+  isLanguageComplete,
+  isPersonalInfoValid,
+  toCertificationRequest,
+  toEducationRequest,
+  toExperienceRequest,
+  toLanguageRequest,
+} from './resume-analysis.utils';
 
 /**
  * Profil du candidat, organise en onglets.
@@ -43,8 +62,9 @@ import { LanguageDialog } from './language-dialog';
  * Onglets: informations personnelles, CV, etudes, experiences,
  * competences et langues, certifications.
  *
- * Le televersement d'un CV declenche une lecture automatique cote API:
- * les valeurs detectees sont proposees en pre-remplissage, jamais imposees.
+ * Apres le televersement d'un CV, le candidat peut le faire analyser par l'IA
+ * (API Claude, appelee cote serveur). Les informations extraites sont proposees
+ * dans une boite de revue: rien n'est enregistre sans validation.
  */
 @Component({
   selector: 'app-profile-page',
@@ -87,8 +107,14 @@ export class ProfilePage {
   readonly savingSkills = signal(false);
   readonly uploading = signal(false);
 
-  /** Resultat de la derniere lecture automatique de CV, propose a l'utilisateur. */
-  readonly parsed = signal<ResumeParsingResult | null>(null);
+  readonly selectedTab = signal(0);
+
+  /** CV tout juste televerse, pour lequel on propose l'analyse automatique. */
+  readonly pendingAnalysis = signal<Resume | null>(null);
+
+  /** CV en cours d'analyse par l'IA (l'appel peut durer jusqu'a une minute). */
+  readonly analyzingResumeId = signal<string | null>(null);
+  readonly applyingAnalysis = signal(false);
 
   readonly skills = signal<string[]>([]);
 
@@ -115,7 +141,7 @@ export class ProfilePage {
 
   // -- Chargement ---------------------------------------------------------
 
-  private load(): void {
+  private load(onLoaded?: () => void): void {
     this.loading.set(true);
     this.profileService.load().subscribe({
       next: (profile) => {
@@ -132,6 +158,7 @@ export class ProfilePage {
         });
         this.skills.set([...profile.skills]);
         this.loading.set(false);
+        onLoaded?.();
       },
       error: () => this.loading.set(false),
     });
@@ -181,9 +208,9 @@ export class ProfilePage {
 
     this.uploading.set(true);
     this.profileService.uploadResume(file).subscribe({
-      next: (response) => {
+      next: (resume) => {
         this.uploading.set(false);
-        this.parsed.set(response.parsed);
+        this.pendingAnalysis.set(resume);
         this.notifications.success('CV televerse.');
         this.load();
       },
@@ -191,34 +218,183 @@ export class ProfilePage {
     });
   }
 
-  /** Recopie les valeurs detectees dans le formulaire, sans ecraser ce qui est deja rempli. */
-  applyParsedData(): void {
-    const parsed = this.parsed();
-    if (!parsed) {
+  dismissPendingAnalysis(): void {
+    this.pendingAnalysis.set(null);
+  }
+
+  // -- Analyse du CV par l'IA ----------------------------------------------
+
+  /** Envoie le CV a l'analyse puis ouvre la revue des informations extraites. */
+  analyzeResume(resume: Resume): void {
+    this.pendingAnalysis.set(null);
+    this.analyzingResumeId.set(resume.id);
+
+    this.profileService.analyzeResume(resume.id).subscribe({
+      next: (analysis) => {
+        this.analyzingResumeId.set(null);
+        this.openAnalysisReview(analysis);
+      },
+      error: () => this.analyzingResumeId.set(null),
+    });
+  }
+
+  private openAnalysisReview(analysis: ResumeAnalysis): void {
+    const profile = this.profile();
+    if (!profile) {
       return;
     }
 
-    const current = this.infoForm.getRawValue();
-    this.infoForm.patchValue({
-      firstName: current.firstName || parsed.firstName || '',
-      lastName: current.lastName || parsed.lastName || '',
-      phone: current.phone || parsed.phone || '',
-      city: current.city || parsed.city || '',
-      country: current.country || parsed.country || '',
-    });
-
-    if (parsed.skills.length) {
-      const merged = new Set([...this.skills(), ...parsed.skills]);
-      this.skills.set([...merged]);
-    }
-
-    this.notifications.info(
-      'Champs pre-remplis a partir du CV. Verifiez les valeurs puis enregistrez.',
-    );
+    this.dialog
+      .open<ResumeAnalysisDialog, ResumeAnalysisDialogData, ResumeAnalysisSelection>(
+        ResumeAnalysisDialog,
+        { data: { analysis, profile }, maxWidth: '96vw', autoFocus: false },
+      )
+      .afterClosed()
+      .subscribe((selection) => {
+        if (selection) {
+          this.applyAnalysis(selection, profile);
+        }
+      });
   }
 
-  dismissParsedData(): void {
-    this.parsed.set(null);
+  /**
+   * Enregistre la selection du candidat:
+   *  1. les elements complets sont enregistres directement (en parallele) ;
+   *  2. les elements incomplets s'ouvrent un par un dans leur formulaire pre-rempli ;
+   *  3. si les informations personnelles fusionnees ne sont pas valides (champ obligatoire
+   *     absent du CV comme du profil), elles sont seulement recopiees dans le formulaire.
+   */
+  private applyAnalysis(selection: ResumeAnalysisSelection, profile: EmployeeProfile): void {
+    const direct: Observable<number>[] = [];
+    const guided: (() => Observable<number>)[] = [];
+    let infoToComplete: UpdatePersonalInfoRequest | null = null;
+
+    if (Object.keys(selection.personal).length) {
+      const merged: UpdatePersonalInfoRequest = {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+        addressLine: profile.addressLine,
+        city: profile.city,
+        country: profile.country,
+        postalCode: profile.postalCode,
+        headline: profile.headline,
+        summary: profile.summary,
+        ...selection.personal,
+      };
+
+      if (isPersonalInfoValid(merged)) {
+        direct.push(this.succeeded(this.profileService.updatePersonalInfo(merged)));
+      } else {
+        infoToComplete = merged;
+      }
+    }
+
+    if (selection.skills.length) {
+      direct.push(
+        this.succeeded(
+          this.profileService.updateSkills([...profile.skills, ...selection.skills]),
+          selection.skills.length,
+        ),
+      );
+    }
+
+    for (const draft of selection.educations) {
+      if (isEducationComplete(draft)) {
+        direct.push(this.succeeded(this.profileService.addEducation(toEducationRequest(draft))));
+      } else {
+        guided.push(() =>
+          this.dialog
+            .open(EducationDialog, { data: { education: null, draft }, maxWidth: '96vw' })
+            .afterClosed()
+            .pipe(switchMap((request) => this.saveIf(request, (r) => this.profileService.addEducation(r)))),
+        );
+      }
+    }
+
+    for (const draft of selection.experiences) {
+      if (isExperienceComplete(draft)) {
+        direct.push(this.succeeded(this.profileService.addExperience(toExperienceRequest(draft))));
+      } else {
+        guided.push(() =>
+          this.dialog
+            .open(ExperienceDialog, { data: { experience: null, draft }, maxWidth: '96vw' })
+            .afterClosed()
+            .pipe(switchMap((request) => this.saveIf(request, (r) => this.profileService.addExperience(r)))),
+        );
+      }
+    }
+
+    for (const draft of selection.languages) {
+      if (isLanguageComplete(draft)) {
+        direct.push(this.succeeded(this.profileService.addLanguage(toLanguageRequest(draft))));
+      } else {
+        guided.push(() =>
+          this.dialog
+            .open(LanguageDialog, { data: { language: null, draft } })
+            .afterClosed()
+            .pipe(switchMap((request) => this.saveIf(request, (r) => this.profileService.addLanguage(r)))),
+        );
+      }
+    }
+
+    for (const draft of selection.certifications) {
+      if (isCertificationComplete(draft)) {
+        direct.push(
+          this.succeeded(this.profileService.addCertification(toCertificationRequest(draft))),
+        );
+      } else {
+        guided.push(() =>
+          this.dialog
+            .open(CertificationDialog, { data: { certification: null, draft }, maxWidth: '96vw' })
+            .afterClosed()
+            .pipe(
+              switchMap((request) => this.saveIf(request, (r) => this.profileService.addCertification(r))),
+            ),
+        );
+      }
+    }
+
+    const direct$ = direct.length ? forkJoin(direct) : of<number[]>([]);
+    // defer: chaque formulaire ne s'ouvre qu'une fois le precedent ferme.
+    const guided$ = guided.length
+      ? concat(...guided.map((open) => defer(open))).pipe(toArray())
+      : of<number[]>([]);
+
+    this.applyingAnalysis.set(true);
+
+    direct$
+      .pipe(switchMap((first) => guided$.pipe(map((second) => [...first, ...second]))))
+      .subscribe((results) => {
+        this.applyingAnalysis.set(false);
+        const added = results.reduce((total, count) => total + count, 0);
+
+        this.load(() => {
+          if (infoToComplete) {
+            this.infoForm.patchValue(infoToComplete);
+            this.infoForm.markAllAsTouched();
+            this.selectedTab.set(0);
+            this.notifications.info(
+              `${added} element(s) ajoute(s). Completez les informations personnelles obligatoires puis enregistrez.`,
+            );
+          } else if (added) {
+            this.notifications.success(`${added} element(s) ajoute(s) a votre profil a partir du CV.`);
+          }
+        });
+      });
+  }
+
+  /** Enregistre la valeur d'un formulaire guide, ou ne fait rien s'il a ete annule. */
+  private saveIf<T>(request: T | undefined, save: (value: T) => Observable<unknown>): Observable<number> {
+    return request ? this.succeeded(save(request)) : of(0);
+  }
+
+  /** Nombre d'elements enregistres par un appel (0 en cas d'echec), sans interrompre les autres. */
+  private succeeded(call: Observable<unknown>, itemCount = 1): Observable<number> {
+    return call.pipe(
+      map(() => itemCount),
+      catchError(() => of(0)),
+    );
   }
 
   setDefaultResume(resume: Resume): void {

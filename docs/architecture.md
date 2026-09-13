@@ -50,7 +50,7 @@ Contrats et objets de transfert. C'est le vocabulaire commun aux deux autres cou
 - `Abstractions/Contracts.cs` : le type `Result` / `Result<T>` et **toutes** les interfaces
   (`IJobStoreRepository`, `IAuthService`, `IProfileService`, `IJobService`, `IApplicationService`,
   `IDashboardService`, `IReferenceDataService`, plus les services techniques `IPasswordHasher`,
-  `ITokenService`, `IEmailSender`, `IResumeParser`, `IMatchingService`).
+  `ITokenService`, `IEmailSender`, `IResumeAnalyzer`, `IMatchingService`).
 - `DTOs/AuthDtos.cs`, `DTOs/ProfileDtos.cs`, `DTOs/JobDtos.cs`, `DTOs/DashboardDtos.cs` :
   requêtes (classes annotées `[Required]`, `[EmailAddress]`, `[Compare]`…) et réponses (`record`).
 
@@ -84,7 +84,9 @@ Implémentations concrètes.
 | `Services/DashboardService.cs` | Agrégations des trois tableaux de bord. |
 | `Services/ReferenceDataService.cs` | Listes de référence des formulaires. |
 | `Services/MatchingService.cs` | Calcul du pourcentage de correspondance. |
-| `Services/ResumeParser.cs` | Extraction de texte d'un CV et détection des champs. |
+| `Services/ClaudeResumeAnalyzer.cs` | Analyse d'un CV par l'API Claude + `AnthropicOptions`. |
+| `Services/ResumeExtractionPrompt.cs` | Consigne et schéma JSON de l'extraction. |
+| `Services/ResumeTextExtractor.cs` | Texte brut des DOCX, DOC et TXT (les PDF sont envoyés tels quels). |
 | `Services/PasswordHasher.cs` | PBKDF2-SHA256, 100 000 itérations, sel de 16 octets. |
 | `Services/JwtTokenService.cs` | Génération des jetons + `JwtOptions`. |
 | `Services/LoggingEmailSender.cs` | Envoi de courriel simulé (écrit dans les logs). |
@@ -165,23 +167,87 @@ qu'il était lors de la candidature.
 
 ---
 
-## 5. Lecture automatique des CV
+## 5. Analyse des CV par l'API Claude
 
-`ResumeParser` extrait le texte selon le format puis applique des expressions régulières et des
-listes de mots-clés (compétences, langues, villes, pays).
+### 5.1 Parcours
 
-| Format | Méthode | Fiabilité |
+```
+Téléversement            POST /api/profile/resumes            → le fichier est stocké, rien d'autre
+      │
+Proposition « Analyser et pré-remplir » (ou bouton ✨ sur un CV existant)
+      │
+Analyse                  POST /api/profile/resumes/{id}/analyze
+      │                    ProfileService copie le fichier sous verrou,
+      │                    puis ClaudeResumeAnalyzer appelle l'API hors verrou (10 à 60 s)
+      ▼
+Revue                    ResumeAnalysisDialog : le candidat coche ce qu'il reprend
+      │
+Enregistrement           éléments complets → enregistrés directement
+                         éléments incomplets → ouverts un par un dans leur formulaire pré-rempli
+```
+
+**Rien n'est enregistré sans validation du candidat.** L'endpoint d'analyse est en lecture seule.
+
+### 5.2 Appel à l'API
+
+`Services/ClaudeResumeAnalyzer.cs` utilise le SDK officiel `Anthropic` (NuGet) :
+
+| Élément | Valeur |
+| --- | --- |
+| Modèle | `claude-opus-5` (configurable : `Anthropic:Model`) |
+| Effort | `medium` (configurable : `Anthropic:Effort`) — suffisant pour de l'extraction |
+| Format de sortie | **Sorties structurées** (`output_config.format` = `json_schema`) : la réponse est garantie conforme au schéma, aucun JSON à « réparer » |
+| PDF | envoyé tel quel en bloc `document` base64 — Claude lit colonnes, tableaux et mise en page |
+| DOCX / DOC / TXT | texte extrait par `ResumeTextExtractor`, envoyé en bloc `document` texte |
+| Refus | repli automatique côté serveur (`fallbacks: "default"`, bêta `server-side-fallback-2026-07-01`) ; si le refus persiste, message explicite |
+
+La consigne et le schéma sont dans `Services/ResumeExtractionPrompt.cs`. Règles clés de la consigne :
+n'utiliser que ce qui figure dans le CV, ne rien inventer, dates au format `AAAA-MM-JJ`,
+correspondance des niveaux de langue, et traitement du CV comme une donnée (toute consigne qu'il
+contiendrait est ignorée).
+
+**Information absente.** Les sorties structurées acceptent au plus **16 paramètres à type union**
+(`anyOf`, « X ou null ») dans tout le schéma ; au-delà, l'API refuse la requête avant de lire le CV.
+Le schéma n'exprime donc pas l'absence par `null` mais par une **chaîne vide** (textes et dates),
+`"inconnu"` (diplôme obtenu) ou `"non precise"` (niveau de langue). Seuls `accumulatedCredits` et
+`gpa` restent « nombre ou null » (2 unions). `ClaudeResumeAnalyzer` reconvertit ces valeurs en `null` :
+l'API JobStore et le frontend ne voient que des `null`.
+
+Les dates sont revalidées côté serveur (`DateOnly.TryParseExact`) : une date vide ou mal formée
+devient `null` et le champ reste à compléter dans le formulaire.
+
+Mesure réelle (Claude Opus 5, effort `medium`) : environ **9 secondes** et **2 700 à 4 700 jetons
+en entrée / 150 à 800 en sortie** par CV d'une page, soit quelques centimes par analyse.
+
+### 5.3 Erreurs
+
+| Situation | Code | Message affiché |
 | --- | --- | --- |
-| `.txt` | Lecture directe UTF-8 | complète |
-| `.docx` | Décompression ZIP puis extraction de `word/document.xml` | bonne |
-| `.pdf` | Extraction des segments de texte non compressés | partielle |
-| `.doc` | Récupération des chaînes lisibles du binaire | faible |
+| Clé d'API absente | 503 | analyse non configurée sur le serveur |
+| Fichier illisible (DOCX corrompu, DOC sans texte) | 422 | réessayer avec un PDF ou un DOCX |
+| Limite de débit Anthropic | 429 | réessayer dans une minute |
+| Document refusé par l'API (PDF invalide, protégé, trop long) | 422 | document illisible, protégé ou trop volumineux |
+| Requête refusée pour une autre raison (schéma, paramètre) | 500 | erreur de configuration du serveur ; le message exact d'Anthropic est dans les journaux |
+| Refus du modèle / sortie tronquée | 422 | compléter le profil manuellement |
+| Panne réseau ou erreur serveur Anthropic | 503 | service momentanément indisponible |
 
-Le résultat est une **proposition** : le frontend l'affiche dans un encart et l'utilisateur clique
-sur « Pré-remplir le formulaire ». Les champs déjà remplis ne sont jamais écrasés.
+Chaque appel est journalisé avec la durée, le modèle réellement utilisé, le motif d'arrêt et le
+nombre de jetons — **jamais le contenu du CV** (donnée personnelle).
 
-Pour une extraction PDF complète, remplacer `ResumeParser` par une implémentation basée sur une
-bibliothèque dédiée (PdfPig, iText) — l'interface `IResumeParser` ne change pas.
+### 5.4 Revue côté frontend
+
+`features/employee/profile/resume-analysis-dialog.*` et `resume-analysis.utils.ts`.
+
+Choix par défaut, pensés pour ne rien écraser sans accord :
+- un champ personnel n'est proposé que s'il diffère du profil ; il est **coché seulement si le
+  profil est vide** pour ce champ (sinon l'ancienne valeur est affichée barrée) ;
+- seules les **nouvelles** compétences sont proposées ;
+- un élément déjà présent (même établissement + diplôme, même poste + entreprise, même langue,
+  même certification) est **décoché** et marqué « déjà dans votre profil » ;
+- un élément auquel il manque un champ obligatoire est marqué « à compléter » : s'il est retenu,
+  son formulaire s'ouvre pré-rempli, les champs manquants vides.
+
+Le courriel extrait n'est pas proposé : changer d'adresse passe par la vérification par code.
 
 ---
 

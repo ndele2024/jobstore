@@ -19,51 +19,32 @@
       <mat-progress-bar mode="determinate" [value]="profile.completionPercentage" />
     </div>
 
-    <mat-tab-group class="mt-2" animationDuration="150ms" [preserveContent]="true">
+    @if (analyzingResumeId() || applyingAnalysis()) {
+      <div class="analysis-progress surface" role="status">
+        <mat-spinner diameter="28" />
+        <div>
+          <strong>
+            {{ applyingAnalysis() ? 'Enregistrement des informations du CV…' : 'Analyse de votre CV par l’IA…' }}
+          </strong>
+          @if (analyzingResumeId()) {
+            <p class="muted text-small">Cela prend généralement entre 10 et 60 secondes.</p>
+          }
+        </div>
+      </div>
+    }
+
+    <mat-tab-group
+      class="mt-2"
+      animationDuration="150ms"
+      [preserveContent]="true"
+      [selectedIndex]="selectedTab()"
+      (selectedIndexChange)="selectedTab.set($event)"
+    >
       <!-- ------------------------------------------------------------ -->
       <!-- Onglet 1 : informations personnelles                          -->
       <!-- ------------------------------------------------------------ -->
       <mat-tab label="Informations">
         <div class="tab-body">
-          @if (parsed(); as parsed) {
-            <div class="parsed surface">
-              <div class="parsed__head">
-                <mat-icon>auto_fix_high</mat-icon>
-                <div>
-                  <strong>Lecture automatique du CV</strong>
-                  <p class="muted text-small">{{ parsed.message }}</p>
-                </div>
-              </div>
-
-              @if (parsed.supported) {
-                <ul class="parsed__list">
-                  @if (parsed.firstName || parsed.lastName) {
-                    <li>Nom détecté : {{ parsed.firstName }} {{ parsed.lastName }}</li>
-                  }
-                  @if (parsed.email) {
-                    <li>Courriel : {{ parsed.email }}</li>
-                  }
-                  @if (parsed.phone) {
-                    <li>Téléphone : {{ parsed.phone }}</li>
-                  }
-                  @if (parsed.city) {
-                    <li>Ville : {{ parsed.city }}, {{ parsed.country }}</li>
-                  }
-                  @if (parsed.skills.length) {
-                    <li>Compétences : {{ parsed.skills.join(', ') }}</li>
-                  }
-                </ul>
-              }
-
-              <div class="actions-row">
-                <button matButton="filled" (click)="applyParsedData()">
-                  <mat-icon>content_paste_go</mat-icon>
-                  Pré-remplir le formulaire
-                </button>
-                <button matButton (click)="dismissParsedData()">Ignorer</button>
-              </div>
-            </div>
-          }
 
           <form class="form-grid" [formGroup]="infoForm" (ngSubmit)="saveInfo()" novalidate>
             <mat-form-field>
@@ -162,8 +143,8 @@
             <div>
               <strong>Téléverser un CV</strong>
               <p class="muted text-small">
-                Formats acceptés : PDF, DOC, DOCX, TXT (5 Mo max). Le contenu est analysé pour
-                pré-remplir votre profil.
+                Formats acceptés : PDF, DOC, DOCX, TXT (5 Mo max). Vous pourrez ensuite le faire
+                analyser pour pré-remplir votre profil.
               </p>
             </div>
             <button matButton="filled" [disabled]="uploading()" (click)="resumeInput.click()">
@@ -177,6 +158,25 @@
               (change)="onResumeSelected($event)"
             />
           </div>
+
+          @if (pendingAnalysis(); as resume) {
+            <div class="analysis-offer surface mt-2">
+              <mat-icon>auto_awesome</mat-icon>
+              <div class="analysis-offer__text">
+                <strong>Pré-remplir votre profil à partir de « {{ resume.fileName }} » ?</strong>
+                <p class="muted text-small">
+                  L'IA lit le CV et vous propose les informations trouvées (études, expériences,
+                  compétences, langues…). Vous choisissez ensuite ce que vous ajoutez.
+                </p>
+              </div>
+              <div class="actions-row">
+                <button matButton (click)="dismissPendingAnalysis()">Plus tard</button>
+                <button matButton="filled" [disabled]="!!analyzingResumeId()" (click)="analyzeResume(resume)">
+                  Analyser et pré-remplir
+                </button>
+              </div>
+            </div>
+          }
 
           @if (profile.resumes.length) {
             <div class="item-list mt-2">
@@ -195,6 +195,18 @@
                   </div>
 
                   <div class="item__actions">
+                    <button
+                      matIconButton
+                      matTooltip="Analyser ce CV et pré-remplir mon profil"
+                      [disabled]="!!analyzingResumeId() || applyingAnalysis()"
+                      (click)="analyzeResume(resume)"
+                    >
+                      @if (analyzingResumeId() === resume.id) {
+                        <mat-spinner diameter="20" />
+                      } @else {
+                        <mat-icon>auto_awesome</mat-icon>
+                      }
+                    </button>
                     @if (!resume.isDefault) {
                       <button
                         matIconButton
