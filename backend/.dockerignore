@@ -1,0 +1,4 @@
+**/bin
+**/obj
+.dotnet-home
+*.user

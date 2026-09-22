@@ -145,4 +145,8 @@ app.MapGet("/", () => Results.Ok(new
     documentation = "/swagger"
 }));
 
+// Sonde interrogee par le healthcheck du conteneur. Volontairement hors de
+// « /api » : nginx ne relaie que ce prefixe, l'endpoint reste donc interne.
+app.MapGet("/health", () => Results.Ok(new { status = "UP" }));
+
 app.Run();
